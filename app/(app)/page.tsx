@@ -1,17 +1,47 @@
-import { DollarSign, Percent, Target, TrendingDown, TrendingUp, Zap } from "lucide-react";
+import { DollarSign, LineChart, Percent, Plus, Target, TrendingDown, TrendingUp, Zap } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { EquityCurveChart } from "@/components/equity-curve-chart";
 import { TradeTable } from "@/components/trade-table";
-import { TRADES, getEquityCurve, getStats } from "@/lib/mock-data";
+import { EmptyState } from "@/components/empty-state";
+import { SeedDemoButton } from "@/components/seed-demo-button";
+import { getTrades } from "@/lib/data/trades";
+import { getStats, getEquityCurve } from "@/lib/analytics";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
-export default function DashboardPage() {
-  const stats = getStats();
-  const equityCurve = getEquityCurve();
-  const recentTrades = [...TRADES]
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 8);
+export default async function DashboardPage() {
+  const trades = await getTrades();
+
+  if (trades.length === 0) {
+    return (
+      <>
+        <PageHeader
+          title="Dashboard"
+          description="Performance overview across all tracked trades."
+        />
+        <div className="flex-1 px-4 py-6 sm:px-8">
+          <EmptyState
+            icon={LineChart}
+            title="No trades yet"
+            description="Log your first trade to see your stats here, or load sample data to explore the app."
+          >
+            <a
+              href="/trades/new"
+              className="flex min-h-10 items-center gap-2 rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add a trade
+            </a>
+            <SeedDemoButton />
+          </EmptyState>
+        </div>
+      </>
+    );
+  }
+
+  const stats = getStats(trades);
+  const equityCurve = getEquityCurve(trades);
+  const recentTrades = trades.slice(0, 8);
 
   return (
     <>
@@ -34,8 +64,8 @@ export default function DashboardPage() {
             value={formatPercent(stats.winRate)}
             icon={Target}
             tone="neutral"
-            hint={`${TRADES.filter((t) => t.pnl >= 0).length} wins / ${
-              TRADES.filter((t) => t.pnl < 0).length
+            hint={`${trades.filter((t) => t.pnl >= 0).length} wins / ${
+              trades.filter((t) => t.pnl < 0).length
             } losses`}
           />
           <StatCard

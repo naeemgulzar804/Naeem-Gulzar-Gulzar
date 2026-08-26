@@ -76,7 +76,7 @@ export function TradeLogClient({ trades }: { trades: Trade[] }) {
       </div>
 
       {filtered.length ? (
-        <TradeTable trades={filtered} caption="Filtered trade log" />
+        <TradeTable trades={filtered} caption="Filtered trade log" deletable />
       ) : (
         <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
           No trades match these filters.

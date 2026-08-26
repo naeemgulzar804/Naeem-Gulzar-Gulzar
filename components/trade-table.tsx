@@ -1,14 +1,17 @@
 import type { Trade } from "@/lib/types";
 import { Badge } from "@/components/badge";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Trash2 } from "lucide-react";
+import { deleteTradeAction } from "@/lib/actions/trades";
 
 export function TradeTable({
   trades,
   caption,
+  deletable = false,
 }: {
   trades: Trade[];
   caption?: string;
+  deletable?: boolean;
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
@@ -37,6 +40,11 @@ export function TradeTable({
             <th scope="col" className="px-4 py-3 text-right font-medium">
               P&amp;L
             </th>
+            {deletable ? (
+              <th scope="col" className="px-4 py-3 text-right font-medium">
+                <span className="sr-only">Actions</span>
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -87,6 +95,20 @@ export function TradeTable({
                 {trade.pnl >= 0 ? "+" : ""}
                 {formatCurrency(trade.pnl)}
               </td>
+              {deletable ? (
+                <td className="whitespace-nowrap px-4 py-3 text-right">
+                  <form action={deleteTradeAction}>
+                    <input type="hidden" name="id" value={trade.id} />
+                    <button
+                      type="submit"
+                      aria-label={`Delete ${trade.symbol} trade from ${formatDate(trade.date)}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-loss/10 hover:text-loss focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </form>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>

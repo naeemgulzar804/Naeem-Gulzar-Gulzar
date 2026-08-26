@@ -8,8 +8,10 @@ import {
   CalendarDays,
   ListOrdered,
   TrendingUp,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logout } from "@/lib/auth/actions";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,8 +20,9 @@ const NAV_ITEMS = [
   { href: "/journal", label: "Journal & Playbooks", icon: NotebookText },
 ] as const;
 
-export function Sidebar() {
+export function Sidebar({ email }: { email: string }) {
   const pathname = usePathname();
+  const initials = email.slice(0, 2).toUpperCase();
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-primary/40 md:flex">
@@ -61,17 +64,23 @@ export function Sidebar() {
 
       <div className="border-t border-border p-4">
         <div className="flex items-center gap-3 rounded-lg bg-secondary/50 px-3 py-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground">
-            NG
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground">
+            {initials}
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-foreground">
-              Naeem
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              EURUSD Price Action
+              {email}
             </p>
           </div>
+          <form action={logout}>
+            <button
+              type="submit"
+              aria-label="Sign out"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </form>
         </div>
       </div>
     </aside>

@@ -7,8 +7,10 @@ import {
   NotebookText,
   CalendarDays,
   ListOrdered,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logout } from "@/lib/auth/actions";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -46,6 +48,15 @@ export function MobileNav() {
           </Link>
         );
       })}
+      <form action={logout} className="flex flex-1">
+        <button
+          type="submit"
+          className="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <LogOut className="h-5 w-5" aria-hidden="true" />
+          Sign out
+        </button>
+      </form>
     </nav>
   );
 }
