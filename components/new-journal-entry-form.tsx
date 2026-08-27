@@ -44,7 +44,7 @@ export function NewJournalEntryForm() {
       className="space-y-3 rounded-2xl border border-border bg-card p-5"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">New journal entry</h3>
+        <h3 className="font-display text-[15px] font-bold tracking-tight text-foreground">New journal entry</h3>
         <button
           type="button"
           onClick={() => setOpen(false)}

@@ -1,6 +1,10 @@
 import type { ComponentType } from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Composition follows the reference template's stat tiles: a rounded icon chip
+ * on its own line, then the value at display weight, then a muted caption.
+ */
 export function StatCard({
   label,
   value,
@@ -26,22 +30,19 @@ export function StatCard({
           : "border-border bg-card"
       )}
     >
-      <div className="flex items-center gap-2">
-        <Icon
-          className={cn(
-            "h-3.5 w-3.5",
-            tone === "profit" && "text-profit",
-            tone === "loss" && "text-loss",
-            tone === "neutral" && "text-faint"
-          )}
-          aria-hidden="true"
-        />
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      </div>
+      <span
+        className={cn(
+          "flex h-9 w-9 items-center justify-center rounded-xl",
+          emphasis ? "bg-accent text-on-accent" : "bg-secondary text-muted-foreground"
+        )}
+      >
+        <Icon className="h-4 w-4" aria-hidden="true" />
+      </span>
+
       <p
         className={cn(
-          "tabular mt-3 font-display font-semibold",
-          emphasis ? "text-[30px] leading-none" : "text-2xl leading-none",
+          "tabular mt-4 font-display font-bold leading-none tracking-tight",
+          emphasis ? "text-[34px]" : "text-[28px]",
           tone === "profit" && "text-profit",
           tone === "loss" && "text-loss",
           tone === "neutral" && "text-foreground"
@@ -49,9 +50,11 @@ export function StatCard({
       >
         {value}
       </p>
-      {hint ? (
-        <p className="mt-2 text-xs text-faint">{hint}</p>
-      ) : null}
+
+      <p className="mt-2.5 text-[13px] font-medium text-muted-foreground">
+        {label}
+      </p>
+      {hint ? <p className="mt-1 text-xs text-faint">{hint}</p> : null}
     </div>
   );
 }

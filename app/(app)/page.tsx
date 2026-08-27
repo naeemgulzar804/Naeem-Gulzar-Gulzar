@@ -147,7 +147,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">Equity curve</h2>
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Equity curve</h2>
               <span className="text-xs text-muted-foreground">
                 Starting balance {formatCurrency(50000)}
               </span>
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-            <h2 className="mb-4 text-sm font-semibold text-foreground">
+            <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
               Win rate by day
             </h2>
             <WinRateBarChart
@@ -170,7 +170,7 @@ export default async function DashboardPage() {
             />
           </div>
           <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-            <h2 className="mb-4 text-sm font-semibold text-foreground">
+            <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
               Entry time performance
             </h2>
             <WinRateBarChart
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">Averages</h2>
+            <h2 className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground">Averages</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
                 <dt className="flex items-center gap-2 text-muted-foreground">
@@ -208,7 +208,7 @@ export default async function DashboardPage() {
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">
+            <h2 className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground">
               Best / worst day
             </h2>
             <dl className="space-y-3 text-sm">
@@ -234,7 +234,7 @@ export default async function DashboardPage() {
 
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Recent trades</h2>
+            <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Recent trades</h2>
             <Link
               href="/trades"
               className="rounded text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

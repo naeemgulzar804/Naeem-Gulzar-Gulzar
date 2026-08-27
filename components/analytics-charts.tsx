@@ -27,11 +27,15 @@ const TOOLTIP_STYLE = {
   fontSize: 12,
 } as const;
 
-// Bar length already encodes the rate, so colouring each bar by performance
-// adds noise without adding information — and it burns the green/red pair that
-// should mean money. Comparison charts stay one accent colour.
-function rateColor(rate: number | null) {
-  return rate === null ? NEUTRAL : ACCENT;
+const HIGHLIGHT = "var(--chart-2)"; // amber — the reference's second chart colour
+
+// Bar length already encodes the rate, so colouring every bar by performance
+// adds noise and burns the green/red pair that should mean money. Instead the
+// series stays violet and amber marks the top performer, which is the one
+// value a comparison chart exists to surface.
+function rateColor(rate: number | null, isBest = false) {
+  if (rate === null) return NEUTRAL;
+  return isBest ? HIGHLIGHT : ACCENT;
 }
 
 /** Win / Loss / Break-even split with the win rate called out in the middle. */
@@ -54,7 +58,7 @@ export function WinRateDonut({
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 text-sm font-semibold text-foreground">Win rate</h2>
+      <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">Win rate</h2>
       <p className="sr-only">
         {wins} wins, {losses} losses, {breakEven} break even — a{" "}
         {rate.toFixed(1)}% win rate.
@@ -163,6 +167,11 @@ export function WinRateBarChart({
     count: d.stat?.count ?? 0,
   }));
 
+  // Only worth highlighting a winner when something actually leads.
+  const topRate = Math.max(...rows.map((r) => r.rate), 0);
+  const hasClearBest =
+    topRate > 0 && rows.filter((r) => r.rate === topRate).length === 1;
+
   return (
     <>
       <table className="sr-only">
@@ -211,7 +220,10 @@ export function WinRateBarChart({
             />
             <Bar dataKey="rate" radius={[5, 5, 0, 0]} isAnimationActive={false}>
               {rows.map((r) => (
-                <Cell key={r.label} fill={rateColor(r.rate)} />
+                <Cell
+                  key={r.label}
+                  fill={rateColor(r.rate, hasClearBest && r.rate === topRate)}
+                />
               ))}
             </Bar>
           </BarChart>

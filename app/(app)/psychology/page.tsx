@@ -64,7 +64,7 @@ export default async function PsychologyPage() {
         />
 
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-          <h2 className="mb-4 text-sm font-semibold text-foreground">
+          <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
             Confidence level performance
           </h2>
           <div className="grid grid-cols-1 gap-x-10 sm:grid-cols-2">
@@ -98,7 +98,7 @@ function EmotionPanel({
 
   return (
     <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 text-sm font-semibold text-foreground">{title}</h2>
+      <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">{title}</h2>
       {rows.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
           No trades recorded with this emotion yet.

@@ -25,7 +25,7 @@ export default async function JournalPage() {
         <section aria-labelledby="playbooks-heading">
           <h2
             id="playbooks-heading"
-            className="mb-4 text-sm font-semibold text-foreground"
+            className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground"
           >
             Playbooks
           </h2>
@@ -48,7 +48,7 @@ export default async function JournalPage() {
 
         <section aria-labelledby="journal-heading">
           <div className="mb-4 flex items-center justify-between">
-            <h2 id="journal-heading" className="text-sm font-semibold text-foreground">
+            <h2 id="journal-heading" className="font-display text-[15px] font-bold tracking-tight text-foreground">
               Daily journal
             </h2>
           </div>

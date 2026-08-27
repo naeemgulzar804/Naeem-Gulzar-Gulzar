@@ -87,7 +87,7 @@ export function ChartReviewPanel({
       >
         <header className="border-b border-border p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Chart Review</h2>
+            <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Chart Review</h2>
             <button
               type="button"
               onClick={onClose}

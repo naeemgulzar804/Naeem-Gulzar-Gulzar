@@ -296,7 +296,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
             <Brain className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">
               AI strategy coach
             </h2>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
