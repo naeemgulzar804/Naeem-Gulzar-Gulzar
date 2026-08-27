@@ -22,15 +22,42 @@ export async function seedDemoData() {
     side: t.side,
     playbook: t.playbook,
     grade: t.grade,
+    result: t.result,
+
+    session: t.session,
+    timeframe: t.timeframe,
+    daily_bias: t.dailyBias,
+    market_condition: t.marketCondition,
+    h4_candle: t.h4Candle,
+    liquidity_purge: t.liquidityPurge,
+    entry_model: t.entryModel,
+    entry_time: t.entryTime,
+
     entry_price: t.entryPrice,
     exit_price: t.exitPrice,
+    stop_loss: t.stopLoss,
+    take_profit: t.takeProfit,
+    planned_rr: t.plannedRR,
     size: t.size,
     risk_amount: t.riskAmount,
+    risk_pct: t.riskPct,
     r_multiple: t.rMultiple,
     pnl: t.pnl,
     duration_minutes: t.durationMinutes,
-    tags: t.tags,
+
+    confluences: t.confluences,
+
+    emotion_before: t.emotionBefore,
+    emotion_during: t.emotionDuring,
+    emotion_after: t.emotionAfter,
+    confidence: t.confidence,
+
+    entry_reason: t.entryReason,
+    exit_reason: t.exitReason,
+    mistakes: t.mistakes,
+    lessons: t.lessons,
     notes: t.notes,
+    tags: t.tags,
   }));
 
   const journalRows = JOURNAL_ENTRIES.map((j) => ({

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ListOrdered, Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { TradeLogClient } from "@/components/trade-log-client";
@@ -21,13 +22,13 @@ export default async function TradeLogPage() {
             : "Every trade you log will show up here."
         }
         actions={
-          <a
+          <Link
             href="/trades/new"
             className="flex min-h-10 items-center gap-2 rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             New trade
-          </a>
+          </Link>
         }
       />
       <div className="flex-1 px-4 py-6 sm:px-8">

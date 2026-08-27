@@ -9,20 +9,33 @@ import {
   ListOrdered,
   TrendingUp,
   LogOut,
+  BarChart3,
+  Brain,
+  Sparkles,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { activeHref } from "@/lib/nav";
 import { logout } from "@/lib/auth/actions";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/trades/new", label: "New Trade", icon: Plus },
   { href: "/trades", label: "Trade Log", icon: ListOrdered },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/psychology", label: "Psychology", icon: Brain },
   { href: "/journal", label: "Journal & Playbooks", icon: NotebookText },
+  { href: "/ai-coach", label: "AI Coach", icon: Sparkles },
 ] as const;
 
 export function Sidebar({ email }: { email: string }) {
   const pathname = usePathname();
   const initials = email.slice(0, 2).toUpperCase();
+  const current = activeHref(
+    pathname,
+    NAV_ITEMS.map((i) => i.href)
+  );
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-primary/40 md:flex">
@@ -37,10 +50,7 @@ export function Sidebar({ email }: { email: string }) {
 
       <nav className="flex-1 space-y-1 px-3 py-4" aria-label="Primary">
         {NAV_ITEMS.map((item) => {
-          const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+          const active = current === item.href;
           const Icon = item.icon;
           return (
             <Link

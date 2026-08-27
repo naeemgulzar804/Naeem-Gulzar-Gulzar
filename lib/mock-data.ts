@@ -1,4 +1,14 @@
 import type { JournalEntry, Playbook, Trade } from "@/lib/types";
+import {
+  CONFLUENCES,
+  EMOTIONS,
+  ENTRY_MODELS,
+  ENTRY_TIMES,
+  H4_CANDLES,
+  SESSIONS,
+  SETUP_GRADES,
+  TIMEFRAMES,
+} from "@/lib/types";
 
 // Deterministic PRNG (mulberry32) so mock data is stable across renders/builds.
 function mulberry32(seed: number) {
@@ -106,14 +116,16 @@ function generateTrades(): Trade[] {
     for (let i = 0; i < tradesToday; i++) {
       const { symbol, base, pip } = weightedSymbol();
       const playbook = pick(PLAYBOOKS);
-      const grade = rand() < 0.45 ? "A+" : "B";
+      const grade = pick(SETUP_GRADES);
       const side = rand() < 0.5 ? "long" : "short";
-      const winProbability = grade === "A+" ? 0.68 : 0.48;
+      const winProbability =
+        grade === "A+" ? 0.68 : grade === "A" ? 0.58 : grade === "B" ? 0.48 : 0.38;
       const isWin = rand() < winProbability;
 
       let rMultiple: number;
       if (isWin) {
-        rMultiple = grade === "A+" ? 1.5 + rand() * 2.5 : 1 + rand() * 1.5;
+        rMultiple =
+          grade === "A+" || grade === "A" ? 1.5 + rand() * 2.5 : 1 + rand() * 1.5;
       } else {
         rMultiple = -(0.8 + rand() * 0.3); // partial-stop variance
       }
@@ -127,25 +139,65 @@ function generateTrades(): Trade[] {
           ? entryPrice + priceMove * pip * 100
           : entryPrice - priceMove * pip * 100;
 
+      const risk = Math.abs(entryPrice - exitPrice) / Math.max(Math.abs(rMultiple), 0.1);
+      const stopLoss = side === "long" ? entryPrice - risk : entryPrice + risk;
+      const takeProfit = side === "long" ? entryPrice + risk * 2 : entryPrice - risk * 2;
+      const isoDay = isoDate(d);
+
       tradeIndex += 1;
       trades.push({
         id: `t-${tradeIndex}`,
-        date: isoDate(d),
+        date: isoDay,
         symbol,
         side,
         playbook: playbook.name,
         grade,
+        result: isWin ? "Win" : "Loss",
+
+        day: new Date(`${isoDay}T00:00:00Z`).toLocaleDateString("en-US", {
+          weekday: "long",
+          timeZone: "UTC",
+        }),
+        session: pick(SESSIONS),
+        timeframe: pick(TIMEFRAMES),
+        dailyBias: side === "long" ? "Bullish" : "Bearish",
+        marketCondition: rand() < 0.6 ? "Imbalanced" : "Balanced",
+        h4Candle: pick(H4_CANDLES),
+        liquidityPurge: rand() < 0.65,
+        entryModel: pick(ENTRY_MODELS),
+        entryTime: pick(ENTRY_TIMES),
+
         entryPrice: Math.round(entryPrice * 100000) / 100000,
         exitPrice: Math.round(exitPrice * 100000) / 100000,
+        stopLoss: Math.round(stopLoss * 100000) / 100000,
+        takeProfit: Math.round(takeProfit * 100000) / 100000,
+        plannedRR: 2,
         size: Math.round((0.5 + rand() * 1.5) * 10) / 10,
         riskAmount: RISK,
+        riskPct: 1,
         rMultiple,
         pnl,
         durationMinutes: Math.round(15 + rand() * 210),
-        tags: playbook.tags,
+
+        confluences: CONFLUENCES.filter(() => rand() < 0.28),
+
+        emotionBefore: pick(EMOTIONS),
+        emotionDuring: pick(EMOTIONS),
+        emotionAfter: isWin ? pick(["Confident", "Calm", "Disciplined"]) : pick(["Frustrated" as string, "Uncertain", "Neutral"]),
+        confidence: Math.max(1, Math.min(10, Math.round(3 + rand() * 7))),
+
+        entryReason: `${playbook.name} setup aligned with the ${side === "long" ? "bullish" : "bearish"} higher-timeframe bias.`,
+        exitReason: isWin ? "Target hit at planned liquidity pool." : "Stopped out on retracement.",
+        mistakes: isWin ? "" : "Entered slightly early before full confirmation.",
+        lessons: isWin ? "Trusting the target paid off." : "Wait for the retest to close before entering.",
         notes: isWin
           ? `Clean ${playbook.name.toLowerCase()} setup, followed plan and let it run to target.`
           : `Valid ${playbook.name.toLowerCase()} setup but got stopped on retracement — no rule violation.`,
+        tags: playbook.tags,
+
+        screenshotDailyPath: null,
+        screenshotH4Path: null,
+        screenshot15mPath: null,
       });
     }
   }

@@ -1,46 +1,47 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowDownRight, ArrowUpRight, Images, Trash2 } from "lucide-react";
 import type { Trade } from "@/lib/types";
 import { Badge } from "@/components/badge";
-import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { ArrowDownRight, ArrowUpRight, Trash2 } from "lucide-react";
+import { chartCount } from "@/components/chart-review-panel";
 import { deleteTradeAction } from "@/lib/actions/trades";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 
 export function TradeTable({
   trades,
   caption,
-  deletable = false,
+  detailed = false,
+  onOpenCharts,
 }: {
   trades: Trade[];
   caption?: string;
-  deletable?: boolean;
+  detailed?: boolean;
+  onOpenCharts?: (index: number) => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
-      <table className="w-full min-w-[720px] border-collapse text-sm">
+      <table className="w-full min-w-[860px] border-collapse text-sm">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead>
           <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <th scope="col" className="px-4 py-3 font-medium">
-              Date
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Symbol
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Side
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Playbook
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Grade
-            </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
-              R
-            </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
-              P&amp;L
-            </th>
-            {deletable ? (
+            <th scope="col" className="px-4 py-3 font-medium">Pair</th>
+            <th scope="col" className="px-4 py-3 font-medium">Date</th>
+            {detailed ? (
+              <>
+                <th scope="col" className="px-4 py-3 font-medium">Session</th>
+                <th scope="col" className="px-4 py-3 font-medium">Bias</th>
+                <th scope="col" className="px-4 py-3 font-medium">H4</th>
+              </>
+            ) : null}
+            <th scope="col" className="px-4 py-3 font-medium">Side</th>
+            <th scope="col" className="px-4 py-3 font-medium">Setup</th>
+            <th scope="col" className="px-4 py-3 font-medium">Entry</th>
+            <th scope="col" className="px-4 py-3 text-right font-medium">R</th>
+            <th scope="col" className="px-4 py-3 text-right font-medium">P&amp;L</th>
+            <th scope="col" className="px-4 py-3 font-medium">Result</th>
+            <th scope="col" className="px-4 py-3 font-medium">Charts</th>
+            {detailed ? (
               <th scope="col" className="px-4 py-3 text-right font-medium">
                 <span className="sr-only">Actions</span>
               </th>
@@ -48,17 +49,50 @@ export function TradeTable({
           </tr>
         </thead>
         <tbody>
-          {trades.map((trade) => (
+          {trades.map((trade, i) => (
             <tr
               key={trade.id}
               className="border-b border-border/60 last:border-0 hover:bg-secondary/40"
             >
+              <td className="whitespace-nowrap px-4 py-3">
+                <Link
+                  href={`/trades/${trade.id}`}
+                  className="font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {trade.symbol}
+                </Link>
+              </td>
               <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                 {formatDate(trade.date)}
+                {trade.day ? (
+                  <span className="ml-1 text-xs text-muted-foreground/70">
+                    {trade.day.slice(0, 3)}
+                  </span>
+                ) : null}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-foreground">
-                {trade.symbol}
-              </td>
+              {detailed ? (
+                <>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    {trade.session ? (
+                      <Badge tone="neutral">{trade.session.split("/")[0]}</Badge>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    {trade.dailyBias ? (
+                      <Badge tone={trade.dailyBias === "Bullish" ? "profit" : "loss"}>
+                        {trade.dailyBias}
+                      </Badge>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                    {trade.h4Candle || "—"}
+                  </td>
+                </>
+              ) : null}
               <td className="whitespace-nowrap px-4 py-3">
                 <span
                   className={cn(
@@ -74,13 +108,13 @@ export function TradeTable({
                   {trade.side === "long" ? "Long" : "Short"}
                 </span>
               </td>
-              <td className="px-4 py-3 text-muted-foreground">
-                {trade.playbook}
-              </td>
               <td className="whitespace-nowrap px-4 py-3">
                 <Badge tone={trade.grade === "A+" ? "accent" : "neutral"}>
                   {trade.grade}
                 </Badge>
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-muted-foreground">
+                {trade.entryTime || (trade.entryPrice ? trade.entryPrice : "—")}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-muted-foreground">
                 {trade.rMultiple >= 0 ? "+" : ""}
@@ -95,9 +129,36 @@ export function TradeTable({
                 {trade.pnl >= 0 ? "+" : ""}
                 {formatCurrency(trade.pnl)}
               </td>
-              {deletable ? (
+              <td className="whitespace-nowrap px-4 py-3">
+                <Badge
+                  tone={
+                    trade.result === "Win"
+                      ? "profit"
+                      : trade.result === "Loss"
+                        ? "loss"
+                        : "neutral"
+                  }
+                >
+                  {trade.result}
+                </Badge>
+              </td>
+              <td className="whitespace-nowrap px-4 py-3">
+                {chartCount(trade) > 0 && onOpenCharts ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenCharts(i)}
+                    className="inline-flex items-center gap-1 rounded-md border border-ring/30 bg-ring/10 px-2 py-1 text-xs font-medium text-ring hover:bg-ring/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Images className="h-3.5 w-3.5" aria-hidden="true" />
+                    {chartCount(trade)}
+                  </button>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </td>
+              {detailed ? (
                 <td className="whitespace-nowrap px-4 py-3 text-right">
-                  <form action={deleteTradeAction}>
+                  <form action={deleteTradeAction} className="inline">
                     <input type="hidden" name="id" value={trade.id} />
                     <button
                       type="submit"
