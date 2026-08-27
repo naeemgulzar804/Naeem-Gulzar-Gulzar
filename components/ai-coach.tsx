@@ -4,8 +4,30 @@ import { useState } from "react";
 import Anthropic from "@anthropic-ai/sdk";
 import { Brain, Sparkles } from "lucide-react";
 import type { Trade } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-const KEY_STORAGE = "tradelog_anthropic_key";
+type Provider = "gemini" | "anthropic";
+
+const PROVIDERS = {
+  gemini: {
+    label: "Google Gemini",
+    badge: "Free",
+    storageKey: "tradelog_gemini_key",
+    keyLabel: "Google AI Studio API key",
+    placeholder: "AIza…",
+    help: "Free tier, no credit card. Get a key at aistudio.google.com/apikey.",
+  },
+  anthropic: {
+    label: "Anthropic Claude",
+    badge: "Paid",
+    storageKey: "tradelog_anthropic_key",
+    keyLabel: "Anthropic API key",
+    placeholder: "sk-ant-api03-…",
+    help: "Pay-as-you-go, needs credits. Get a key at console.anthropic.com.",
+  },
+} as const satisfies Record<Provider, unknown>;
+
+const GEMINI_MODEL = "gemini-2.0-flash";
 
 const SYSTEM_PROMPT = `You are an elite ICT/Smart Money trading coach analyzing a trader's journal. Return insights under these exact headers:
 
@@ -29,26 +51,94 @@ function summarize(trades: Trade[]) {
     .join("\n");
 }
 
-export function AICoach({ trades }: { trades: Trade[] }) {
-  // Read on first render rather than in an effect; the input is uncontrolled
-  // until the user types, so there's no hydration text to mismatch.
-  const [apiKey, setApiKey] = useState(() => {
-    if (typeof window === "undefined") return "";
-    try {
-      return localStorage.getItem(KEY_STORAGE) ?? "";
-    } catch {
-      // Private browsing or blocked storage — the key just won't persist.
-      return "";
+function readStoredKey(provider: Provider) {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(PROVIDERS[provider].storageKey) ?? "";
+  } catch {
+    // Private browsing or blocked storage — the key just won't persist.
+    return "";
+  }
+}
+
+async function runGemini(apiKey: string, prompt: string) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 4000 },
+      }),
     }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    const message = data?.error?.message ?? `Request failed (${res.status})`;
+    if (res.status === 400 && /api key/i.test(message)) {
+      throw new Error("Invalid API key — check it and try again.");
+    }
+    if (res.status === 429) {
+      throw new Error(
+        "Gemini free-tier rate limit hit. Wait a minute and retry."
+      );
+    }
+    throw new Error(message);
+  }
+
+  const candidate = data?.candidates?.[0];
+  if (candidate?.finishReason === "SAFETY") {
+    throw new Error("Gemini blocked this response under its safety filters.");
+  }
+
+  return (candidate?.content?.parts ?? [])
+    .map((p: { text?: string }) => p.text ?? "")
+    .join("")
+    .trim();
+}
+
+async function runAnthropic(apiKey: string, prompt: string) {
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+
+  const response = await client.messages.create({
+    model: "claude-opus-5",
+    max_tokens: 4000,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: prompt }],
   });
+
+  return response.content
+    .filter((b) => b.type === "text")
+    .map((b) => (b.type === "text" ? b.text : ""))
+    .join("\n")
+    .trim();
+}
+
+export function AICoach({ trades }: { trades: Trade[] }) {
+  const [provider, setProvider] = useState<Provider>("gemini");
+  // Keys are held per provider so switching tabs doesn't clobber the other one.
+  const [keys, setKeys] = useState<Record<Provider, string>>(() => ({
+    gemini: readStoredKey("gemini"),
+    anthropic: readStoredKey("anthropic"),
+  }));
   const [analysis, setAnalysis] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const config = PROVIDERS[provider];
+  const apiKey = keys[provider];
+
   function saveKey(value: string) {
-    setApiKey(value);
+    setKeys((k) => ({ ...k, [provider]: value }));
     try {
-      localStorage.setItem(KEY_STORAGE, value);
+      localStorage.setItem(config.storageKey, value);
     } catch {
       // Ignore: the key still works for this session.
     }
@@ -56,7 +146,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
 
   async function runAnalysis() {
     if (!apiKey.trim()) {
-      setError("Enter your Anthropic API key first.");
+      setError(`Enter your ${config.label} API key first.`);
       return;
     }
     if (trades.length === 0) {
@@ -68,28 +158,13 @@ export function AICoach({ trades }: { trades: Trade[] }) {
     setError("");
     setAnalysis("");
 
+    const prompt = `Analyze my trading journal:\n\n${summarize(trades)}`;
+
     try {
-      const client = new Anthropic({
-        apiKey: apiKey.trim(),
-        dangerouslyAllowBrowser: true,
-      });
-
-      const response = await client.messages.create({
-        model: "claude-opus-5",
-        max_tokens: 4000,
-        system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: `Analyze my trading journal:\n\n${summarize(trades)}`,
-          },
-        ],
-      });
-
-      const text = response.content
-        .filter((b) => b.type === "text")
-        .map((b) => (b.type === "text" ? b.text : ""))
-        .join("\n");
+      const text =
+        provider === "gemini"
+          ? await runGemini(apiKey.trim(), prompt)
+          : await runAnthropic(apiKey.trim(), prompt);
 
       setAnalysis(text || "No response returned.");
     } catch (err) {
@@ -110,20 +185,60 @@ export function AICoach({ trades }: { trades: Trade[] }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-5">
+        <div
+          role="group"
+          aria-label="AI provider"
+          className="mb-4 flex flex-wrap gap-2"
+        >
+          {(Object.keys(PROVIDERS) as Provider[]).map((id) => {
+            const active = provider === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setProvider(id);
+                  setError("");
+                }}
+                aria-pressed={active}
+                className={cn(
+                  "flex min-h-9 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  active
+                    ? "border-ring bg-ring/10 text-foreground"
+                    : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )}
+              >
+                {PROVIDERS[id].label}
+                <span
+                  className={cn(
+                    "rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                    id === "gemini"
+                      ? "bg-profit/15 text-profit"
+                      : "bg-secondary text-muted-foreground"
+                  )}
+                >
+                  {PROVIDERS[id].badge}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
             <label
-              htmlFor="anthropic-key"
+              htmlFor={`key-${provider}`}
               className="mb-1.5 block text-xs font-medium text-muted-foreground"
             >
-              Anthropic API key
+              {config.keyLabel}
             </label>
             <input
-              id="anthropic-key"
+              id={`key-${provider}`}
               type="password"
               value={apiKey}
               onChange={(e) => saveKey(e.target.value)}
-              placeholder="sk-ant-api03-…"
+              placeholder={config.placeholder}
               className="min-h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
@@ -138,8 +253,8 @@ export function AICoach({ trades }: { trades: Trade[] }) {
           </button>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Your key is stored only in this browser and sent directly to Anthropic.
-          Get one at console.anthropic.com.
+          {config.help} Your key is stored only in this browser and sent
+          directly to the provider.
         </p>
       </div>
 
