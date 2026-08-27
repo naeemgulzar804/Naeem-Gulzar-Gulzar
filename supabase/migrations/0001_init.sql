@@ -182,6 +182,14 @@ begin
 end;
 $$;
 
+-- Trigger-only: keep it off the REST RPC surface. A SECURITY DEFINER function
+-- that anon/authenticated can call is a privilege-escalation hole. Triggers
+-- still fire after this, since they run as the table owner rather than through
+-- EXECUTE grants.
+revoke execute on function public.handle_new_user_playbooks() from public;
+revoke execute on function public.handle_new_user_playbooks() from anon;
+revoke execute on function public.handle_new_user_playbooks() from authenticated;
+
 drop trigger if exists on_auth_user_created_seed_playbooks on auth.users;
 create trigger on_auth_user_created_seed_playbooks
   after insert on auth.users
