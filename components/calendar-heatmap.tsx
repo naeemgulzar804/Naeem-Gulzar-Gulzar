@@ -133,10 +133,14 @@ export function CalendarHeatmap({
                 "flex aspect-square flex-col items-center justify-center rounded-lg border text-[11px] sm:text-xs",
                 hasTrades
                   ? cn("border-transparent font-medium", intensityClass(entry!.pnl, maxAbs), entry!.pnl >= 0 ? "text-profit" : "text-loss")
-                  : "border-border/60 text-muted-foreground/50"
+                  : "border-border/60 text-faint"
               )}
             >
-              <span className="text-[10px] opacity-70 sm:text-xs">{cell.day}</span>
+              <span
+                className={cn("text-[10px] sm:text-xs", hasTrades && "opacity-80")}
+              >
+                {cell.day}
+              </span>
               {hasTrades ? (
                 <span className="mt-0.5 tabular leading-none">
                   {formatCompactCurrency(entry!.pnl)}

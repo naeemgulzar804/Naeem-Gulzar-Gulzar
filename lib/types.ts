@@ -187,3 +187,54 @@ export interface GroupWinRate {
   count: number;
   wins: number;
 }
+
+export type ReviewKind = "pre" | "post";
+export type MarketBias = "Bullish" | "Bearish" | "Neutral";
+export type PlanAdherence = "Yes" | "Partially" | "No";
+
+export const MARKET_BIASES: MarketBias[] = ["Bullish", "Bearish", "Neutral"];
+export const PLAN_ADHERENCE: PlanAdherence[] = ["Yes", "Partially", "No"];
+
+/** A pre-market plan or a post-market review for one trading day. */
+export interface MarketReview {
+  id: string;
+  date: string;
+  kind: ReviewKind;
+
+  // Pre-market
+  bias: MarketBias | null;
+  watchlist: string[];
+  keyLevels: string;
+  newsEvents: string;
+  plan: string;
+  mentalState: string;
+  riskPlan: string;
+
+  // Post-market
+  followedPlan: PlanAdherence | null;
+  whatWentWell: string;
+  whatWentWrong: string;
+  lessons: string;
+  disciplineRating: number | null;
+
+  notes: string;
+  updatedAt: string;
+}
+
+/** One surfaced edge or leak found in the trade history. */
+export interface TradePattern {
+  id: string;
+  title: string;
+  detail: string;
+  kind: "edge" | "leak" | "neutral";
+  /** Win rate of the subset, in percent. */
+  rate: number;
+  /** Percentage points above/below the overall baseline. */
+  lift: number;
+  sampleSize: number;
+  /**
+   * For provisional patterns only: roughly how many more trades in this
+   * group it would take to confirm the gap, if the rate held.
+   */
+  moreTradesNeeded?: number;
+}

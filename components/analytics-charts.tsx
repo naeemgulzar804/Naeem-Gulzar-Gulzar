@@ -154,6 +154,48 @@ export function WinRateBar({
 }
 
 /** Vertical bars comparing win rate across a category (day, session, …). */
+/*
+ * Recharts silently drops category ticks that would overlap, which at 375px
+ * left one bar with no label at all. Rendering every tick and wrapping the
+ * long ones onto a second line keeps all four labelled.
+ */
+function WrappedTick({
+  x,
+  y,
+  payload,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value?: string };
+}) {
+  const value = String(payload?.value ?? "");
+  const lines =
+    value.length <= 10
+      ? [value]
+      : (() => {
+          const at = Math.max(value.lastIndexOf(" "), value.lastIndexOf("/"));
+          if (at <= 0) return [value];
+          const head = value.slice(0, value[at] === "/" ? at + 1 : at);
+          return [head, value.slice(at + 1)];
+        })();
+
+  return (
+    <text
+      x={x}
+      y={(y ?? 0) + 10}
+      textAnchor="middle"
+      fill="var(--color-muted-foreground)"
+      fontSize={10}
+    >
+      {lines.map((line, i) => (
+        <tspan key={line + i} x={x} dy={i === 0 ? 0 : 11}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 export function WinRateBarChart({
   data,
   height = 160,
@@ -196,10 +238,11 @@ export function WinRateBarChart({
 
       <div style={{ height }} aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rows} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
+          <BarChart data={rows} margin={{ top: 4, right: 4, bottom: 12, left: -18 }}>
             <XAxis
               dataKey="label"
-              tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+              interval={0}
+              tick={<WrappedTick />}
               tickLine={false}
               axisLine={{ stroke: "var(--color-border)" }}
             />

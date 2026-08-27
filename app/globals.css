@@ -1,19 +1,100 @@
 @import "tailwindcss";
 
 /*
- * Design language adapted from the SasMind SaaS template: a near-black canvas
- * with cards one step lighter, hairline borders instead of hard outlines, a
- * violet accent, and generous corner radii.
+ * Design language adapted from the SasMind SaaS template: cards a step apart
+ * from the canvas, hairline borders instead of hard outlines, a violet accent,
+ * and generous corner radii.
+ *
+ * Theme architecture: the light palette is defined on bare :root so it is the
+ * fallback in every context. Dark is layered twice — once for the system
+ * preference (skipped when the user explicitly chose light) and once for an
+ * explicit choice — so the toggle wins in both directions.
  *
  * Colour discipline: violet is the interface accent (actions, focus, active
  * nav). Green and red are reserved exclusively for P&L semantics, so a number
  * being green always means money, never "this is a button".
  */
 :root {
+  --background: #f7f7fa;
+  --foreground: #14141b;
+
+  --color-primary: #ffffff;
+  --color-on-primary: #14141b;
+  --color-secondary: #eeeef3;
+  --color-on-secondary: #14141b;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #14141b;
+  --color-muted: #eeeef3;
+  --color-muted-foreground: #5c5c6e;
+  --color-faint: #737386;
+
+  --color-border: rgba(20, 20, 27, 0.09);
+  --color-border-strong: rgba(20, 20, 27, 0.16);
+
+  --color-accent: #6d4afb;
+  --color-accent-hover: #5c37f0;
+  --color-on-accent: #ffffff;
+  --color-accent-soft: rgba(109, 74, 251, 0.09);
+  --color-accent-border: rgba(109, 74, 251, 0.24);
+  --color-ring: #6d4afb;
+
+  /* Darker on light so P&L still passes contrast against white cards. */
+  --color-profit: #067a52;
+  --color-profit-foreground: #ffffff;
+  --color-loss: #c8342f;
+  --color-loss-foreground: #ffffff;
+
+  --chart-1: #6d4afb;
+  --chart-2: #d18700;
+  --chart-3: #0d9488;
+  --chart-4: #ea6c1f;
+  --chart-grid: rgba(20, 20, 27, 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #08080c;
+    --foreground: #f4f4f7;
+
+    --color-primary: #0d0d13;
+    --color-on-primary: #f4f4f7;
+    --color-secondary: #1a1a24;
+    --color-on-secondary: #f4f4f7;
+
+    --color-card: #13131b;
+    --color-card-foreground: #f4f4f7;
+    --color-muted: #1a1a24;
+    --color-muted-foreground: #9a9aad;
+    --color-faint: #7d7d90;
+
+    --color-border: rgba(255, 255, 255, 0.07);
+    --color-border-strong: rgba(255, 255, 255, 0.12);
+
+    --color-accent: #7c5cfc;
+    --color-accent-hover: #6b48fb;
+    --color-on-accent: #ffffff;
+    --color-accent-soft: rgba(124, 92, 252, 0.12);
+    --color-accent-border: rgba(124, 92, 252, 0.28);
+    --color-ring: #7c5cfc;
+
+    --color-profit: #34d399;
+    --color-profit-foreground: #052e21;
+    --color-loss: #f87171;
+    --color-loss-foreground: #2d0708;
+
+    --chart-1: #7c5cfc;
+    --chart-2: #fbbf24;
+    --chart-3: #2dd4bf;
+    --chart-4: #fb923c;
+    --chart-grid: rgba(255, 255, 255, 0.05);
+  }
+}
+
+:root[data-theme="dark"] {
   --background: #08080c;
   --foreground: #f4f4f7;
 
-  /* Elevation ladder: canvas -> surface -> card -> raised */
   --color-primary: #0d0d13;
   --color-on-primary: #f4f4f7;
   --color-secondary: #1a1a24;
@@ -22,14 +103,12 @@
   --color-card: #13131b;
   --color-card-foreground: #f4f4f7;
   --color-muted: #1a1a24;
-  --color-muted-foreground: #8b8b9e;
-  --color-faint: #5c5c70;
+  --color-muted-foreground: #9a9aad;
+  --color-faint: #7d7d90;
 
-  /* Hairlines, not outlines — the template separates with tone, not strokes. */
   --color-border: rgba(255, 255, 255, 0.07);
   --color-border-strong: rgba(255, 255, 255, 0.12);
 
-  /* Interface accent */
   --color-accent: #7c5cfc;
   --color-accent-hover: #6b48fb;
   --color-on-accent: #ffffff;
@@ -37,13 +116,11 @@
   --color-accent-border: rgba(124, 92, 252, 0.28);
   --color-ring: #7c5cfc;
 
-  /* P&L semantics only */
   --color-profit: #34d399;
   --color-profit-foreground: #052e21;
   --color-loss: #f87171;
   --color-loss-foreground: #2d0708;
 
-  /* Categorical chart palette — violet, amber, teal, orange */
   --chart-1: #7c5cfc;
   --chart-2: #fbbf24;
   --chart-3: #2dd4bf;
@@ -88,8 +165,6 @@
   --font-sans: var(--font-inter);
   --font-display: var(--font-outfit);
   --font-mono: var(--font-jetbrains);
-
-  --radius-card: 16px;
 }
 
 * {
@@ -114,8 +189,38 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Interactive polish. Colour and background transitions are cheap and make
+ * hover/focus feel responsive; layout properties are deliberately excluded so
+ * nothing animates size or position on load.
+ */
+a,
+button,
+select,
+input,
+textarea,
+[role="button"] {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
 ::-webkit-scrollbar {
@@ -126,7 +231,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-secondary);
+  background: var(--color-border-strong);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {

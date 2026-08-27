@@ -14,10 +14,14 @@ import {
   Plus,
   MoreHorizontal,
   LogOut,
+  Radar,
+  ClipboardList,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { activeHref } from "@/lib/nav";
 import { logout } from "@/lib/auth/actions";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const PRIMARY = [
   { href: "/", label: "Home", icon: LayoutDashboard },
@@ -30,7 +34,10 @@ const SECONDARY = [
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/psychology", label: "Psychology", icon: Brain },
   { href: "/journal", label: "Journal & Playbooks", icon: NotebookText },
+  { href: "/reviews", label: "Market Reviews", icon: ClipboardList },
+  { href: "/patterns", label: "Patterns", icon: Radar },
   { href: "/ai-coach", label: "AI Coach", icon: Sparkles },
+  { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 const ALL_HREFS = [...PRIMARY, ...SECONDARY].map((i) => i.href);
@@ -54,6 +61,9 @@ export function MobileNav() {
             className="fixed inset-x-0 bottom-16 z-50 border-t border-border bg-primary p-2 md:hidden"
             style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}
           >
+            <div className="px-2 pb-2">
+              <ThemeToggle />
+            </div>
             {SECONDARY.map((item) => {
               const Icon = item.icon;
               return (

@@ -13,10 +13,14 @@ import {
   Brain,
   Sparkles,
   Plus,
+  Radar,
+  ClipboardList,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { activeHref } from "@/lib/nav";
 import { logout } from "@/lib/auth/actions";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -26,7 +30,10 @@ const NAV_ITEMS = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/psychology", label: "Psychology", icon: Brain },
   { href: "/journal", label: "Journal & Playbooks", icon: NotebookText },
+  { href: "/reviews", label: "Market Reviews", icon: ClipboardList },
+  { href: "/patterns", label: "Patterns", icon: Radar },
   { href: "/ai-coach", label: "AI Coach", icon: Sparkles },
+  { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function Sidebar({ email }: { email: string }) {
@@ -75,7 +82,8 @@ export function Sidebar({ email }: { email: string }) {
         })}
       </nav>
 
-      <div className="p-3">
+      <div className="space-y-2 p-3">
+        <ThemeToggle />
         <div className="flex items-center gap-3 rounded-xl bg-card px-3 py-2.5">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
             {initials}

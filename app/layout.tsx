@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { THEME_INIT_SCRIPT } from "@/components/theme-toggle";
 
 // Outfit carries the template's geometric headline voice; Inter handles the
 // dense UI text where Outfit's wide forms would cost horizontal room.
@@ -36,7 +37,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Stamps the stored theme before paint so dark users see no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-full bg-background text-foreground">
         {children}
       </body>

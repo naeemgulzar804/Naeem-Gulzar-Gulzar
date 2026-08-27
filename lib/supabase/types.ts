@@ -168,6 +168,54 @@ export interface Database {
         >;
         Relationships: [];
       };
+      market_reviews: {
+        Row: {
+          id: string;
+          user_id: string;
+          date: string;
+          kind: "pre" | "post";
+          bias: string | null;
+          watchlist: string[];
+          key_levels: string | null;
+          news_events: string | null;
+          plan: string | null;
+          mental_state: string | null;
+          risk_plan: string | null;
+          followed_plan: string | null;
+          what_went_well: string | null;
+          what_went_wrong: string | null;
+          lessons: string | null;
+          discipline_rating: number | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          date: string;
+          kind: "pre" | "post";
+          bias?: string | null;
+          watchlist?: string[];
+          key_levels?: string | null;
+          news_events?: string | null;
+          plan?: string | null;
+          mental_state?: string | null;
+          risk_plan?: string | null;
+          followed_plan?: string | null;
+          what_went_well?: string | null;
+          what_went_wrong?: string | null;
+          lessons?: string | null;
+          discipline_rating?: number | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["market_reviews"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
