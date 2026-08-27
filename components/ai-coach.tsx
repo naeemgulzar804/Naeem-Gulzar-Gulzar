@@ -14,7 +14,7 @@ const PROVIDERS = {
     badge: "Free",
     storageKey: "tradelog_gemini_key",
     keyLabel: "Google AI Studio API key",
-    placeholder: "AIza…",
+    placeholder: "AQ.… or AIza…",
     help: "Free tier, no credit card. Get a key at aistudio.google.com/apikey.",
   },
   anthropic: {
@@ -27,7 +27,12 @@ const PROVIDERS = {
   },
 } as const satisfies Record<Provider, unknown>;
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-3.6-flash";
+
+// Gemini 3.x reasons before answering, and those thinking tokens count against
+// maxOutputTokens — a trivial reply already burns ~90. Leave generous headroom
+// so a full eight-section analysis isn't cut off mid-thought.
+const GEMINI_MAX_OUTPUT_TOKENS = 16000;
 
 const SYSTEM_PROMPT = `You are an elite ICT/Smart Money trading coach analyzing a trader's journal. Return insights under these exact headers:
 
@@ -73,7 +78,7 @@ async function runGemini(apiKey: string, prompt: string) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 4000 },
+        generationConfig: { maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS },
       }),
     }
   );
@@ -98,10 +103,19 @@ async function runGemini(apiKey: string, prompt: string) {
     throw new Error("Gemini blocked this response under its safety filters.");
   }
 
-  return (candidate?.content?.parts ?? [])
+  // Reasoning parts carry only a thoughtSignature, so filter to real text.
+  const text = (candidate?.content?.parts ?? [])
     .map((p: { text?: string }) => p.text ?? "")
     .join("")
     .trim();
+
+  if (!text && candidate?.finishReason === "MAX_TOKENS") {
+    throw new Error(
+      "Gemini ran out of output budget before answering. Try again, or trim the number of trades."
+    );
+  }
+
+  return text;
 }
 
 async function runAnthropic(apiKey: string, prompt: string) {
