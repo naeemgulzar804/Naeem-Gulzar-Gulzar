@@ -19,13 +19,19 @@ import { WinRateDonut, WinRateBarChart } from "@/components/analytics-charts";
 import { TradeTable } from "@/components/trade-table";
 import { EmptyState } from "@/components/empty-state";
 import { SeedDemoButton } from "@/components/seed-demo-button";
+import { RiskGuardrails } from "@/components/risk-guardrails";
 import { getTrades } from "@/lib/data/trades";
+import { getAccountSettings } from "@/lib/data/settings";
 import { getStats, getEquityCurve, groupWinRate } from "@/lib/analytics";
+import { getRiskReport } from "@/lib/risk";
 import { ENTRY_TIMES, WEEKDAYS } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 export default async function DashboardPage() {
-  const trades = await getTrades();
+  const [trades, settings] = await Promise.all([
+    getTrades(),
+    getAccountSettings(),
+  ]);
 
   if (trades.length === 0) {
     return (
@@ -55,7 +61,9 @@ export default async function DashboardPage() {
   }
 
   const stats = getStats(trades);
-  const equityCurve = getEquityCurve(trades);
+  const equityCurve = getEquityCurve(trades, settings.startingBalance);
+  const today = new Date().toISOString().slice(0, 10);
+  const risk = getRiskReport(trades, settings, today);
   const recentTrades = trades.slice(0, 8);
 
   const wins = trades.filter((t) => t.result === "Win").length;
@@ -76,6 +84,8 @@ export default async function DashboardPage() {
       />
 
       <div className="flex-1 space-y-6 px-4 py-6 sm:px-8">
+        <RiskGuardrails report={risk} />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Net P&L"
@@ -149,7 +159,7 @@ export default async function DashboardPage() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Equity curve</h2>
               <span className="text-xs text-muted-foreground">
-                Starting balance {formatCurrency(50000)}
+                Starting balance {formatCurrency(settings.startingBalance)}
               </span>
             </div>
             <EquityCurveChart data={equityCurve} />

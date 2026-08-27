@@ -53,14 +53,14 @@ export default async function JournalPage() {
             </h2>
           </div>
           <div className="space-y-4">
-            <NewJournalEntryForm />
+            <NewJournalEntryForm trades={trades} />
             {journalEntries.length === 0 ? (
               <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                 No journal entries yet.
               </p>
             ) : (
               journalEntries.map((entry) => (
-                <JournalEntryCard key={entry.id} entry={entry} />
+                <JournalEntryCard key={entry.id} entry={entry} trades={trades} />
               ))
             )}
           </div>

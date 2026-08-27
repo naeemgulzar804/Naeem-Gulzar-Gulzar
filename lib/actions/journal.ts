@@ -16,13 +16,17 @@ export async function addJournalEntry(
     | "frustrated"
     | "disciplined";
   const content = String(formData.get("content") ?? "").trim();
+  const linkedTradeIds = String(formData.get("linkedTradeIds") ?? "")
+    .split("|")
+    .map((id) => id.trim())
+    .filter(Boolean);
 
   if (!date || !title) {
     return { error: "Date and title are required." };
   }
 
   try {
-    await createJournalEntry({ date, title, mood, content });
+    await createJournalEntry({ date, title, mood, content, linkedTradeIds });
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Failed to save entry." };
   }

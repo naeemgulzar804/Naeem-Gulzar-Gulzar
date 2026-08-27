@@ -33,6 +33,12 @@ export async function seedDemoData() {
     entry_model: t.entryModel,
     entry_time: t.entryTime,
 
+    daily_aligned: t.dailyAligned,
+    smt_quality: t.smtQuality || null,
+    smt_pair: t.smtPair || null,
+    sweep_quality: t.sweepQuality || null,
+    entry_execution: t.entryExecution || null,
+
     entry_price: t.entryPrice,
     exit_price: t.exitPrice,
     stop_loss: t.stopLoss,

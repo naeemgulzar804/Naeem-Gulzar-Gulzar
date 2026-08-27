@@ -34,10 +34,23 @@ const GEMINI_MODEL = "gemini-3.6-flash";
 // so a full eight-section analysis isn't cut off mid-thought.
 const GEMINI_MAX_OUTPUT_TOKENS = 16000;
 
-const SYSTEM_PROMPT = `You are an elite ICT/Smart Money trading coach analyzing a trader's journal. Return insights under these exact headers:
+const SYSTEM_PROMPT = `You are an elite ICT/Smart Money trading coach analyzing a trader's journal.
+
+The trader's model grades a setup on three criteria, and a trade is A+ only when all three are present:
+1. Daily timeframe bias agrees with the H4 direction traded (Aligned)
+2. SMT divergence on GBPUSD/DXY is Clear — not Borderline, and never Forced
+3. The H4 liquidity sweep is Clean — not Borderline
+
+3/3 = A+ at full risk. 2/3 = B-grade at half risk. 1 or fewer = no trade.
+Entries are only taken at the 1/5/9 AM New York kill zones, on a retest of the 15M orderblock — entering at the engulfing candle instead is a known recurring mistake. Target is a fixed 1:3.
+
+Weigh these against the outcomes. When a criterion correlates with losses, say so with the numbers. Do not invent patterns the data does not support, and say plainly when a sample is too small to conclude anything.
+
+Return insights under these exact headers:
 
 ## PERFORMANCE OVERVIEW
-## HIGHEST PROBABILITY SETUP
+## THE THREE CRITERIA
+## EXECUTION & DISCIPLINE
 ## BEST ENTRY TIME
 ## BEST DAY TO TRADE
 ## PSYCHOLOGY PATTERNS
@@ -45,13 +58,13 @@ const SYSTEM_PROMPT = `You are an elite ICT/Smart Money trading coach analyzing 
 ## EXPECTANCY & EDGE
 ## ACTION PLAN FOR NEXT WEEK
 
-Be data-driven and direct. Reference specific numbers and patterns from the data.`;
+Be data-driven and direct. Reference specific numbers from the data.`;
 
 function summarize(trades: Trade[]) {
   return trades
     .map(
       (t, i) =>
-        `T${i + 1}: ${t.symbol}|${t.date} ${t.day}|${t.session}|Bias:${t.dailyBias}|Cond:${t.marketCondition}|Playbook:${t.playbook}|Setup:${t.grade}|H4:${t.h4Candle}|Purge:${t.liquidityPurge}|Model:${t.entryModel}|Entry:${t.entryTime}@${t.entryPrice}|SL:${t.stopLoss}|TP:${t.takeProfit}|R:${t.rMultiple}|PnL:${t.pnl}|Result:${t.result}|Confluences:${t.confluences.join(",")}|Emotions:${t.emotionBefore}->${t.emotionDuring}->${t.emotionAfter}|Confidence:${t.confidence}/10|Mistakes:${t.mistakes}|Notes:${t.notes}`
+        `T${i + 1}: ${t.symbol}|${t.date} ${t.day}|${t.session}|Bias:${t.dailyBias}|DailyAligned:${t.dailyAligned === null ? "unrecorded" : t.dailyAligned}|SMT:${t.smtQuality || "unrecorded"}${t.smtPair ? `(${t.smtPair})` : ""}|Sweep:${t.sweepQuality || "unrecorded"}|Execution:${t.entryExecution || "unrecorded"}|Cond:${t.marketCondition}|Playbook:${t.playbook}|Setup:${t.grade}|H4:${t.h4Candle}|Model:${t.entryModel}|Entry:${t.entryTime}@${t.entryPrice}|SL:${t.stopLoss}|TP:${t.takeProfit}|Risk%:${t.riskPct}|R:${t.rMultiple}|PnL:${t.pnl}|Result:${t.result}|Confluences:${t.confluences.join(",")}|Emotions:${t.emotionBefore}->${t.emotionDuring}->${t.emotionAfter}|Confidence:${t.confidence}/10|Mistakes:${t.mistakes}|Notes:${t.notes}`
     )
     .join("\n");
 }

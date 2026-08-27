@@ -2,13 +2,17 @@ import type { JournalEntry, Playbook, Trade } from "@/lib/types";
 import {
   CONFLUENCES,
   EMOTIONS,
+  ENTRY_EXECUTIONS,
   ENTRY_MODELS,
   ENTRY_TIMES,
   H4_CANDLES,
   SESSIONS,
-  SETUP_GRADES,
+  SMT_PAIRS,
+  SMT_QUALITIES,
+  SWEEP_QUALITIES,
   TIMEFRAMES,
 } from "@/lib/types";
+import { criteriaMet, derivedGrade } from "@/lib/model";
 
 // Deterministic PRNG (mulberry32) so mock data is stable across renders/builds.
 function mulberry32(seed: number) {
@@ -23,6 +27,17 @@ function mulberry32(seed: number) {
 }
 const rand = mulberry32(20260826);
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(rand() * arr.length)];
+
+/** Picks from `arr` using matching weights, so demo data isn't uniform. */
+function pickWeighted<T>(arr: readonly T[], weights: number[]): T {
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = rand() * total;
+  for (let i = 0; i < arr.length; i++) {
+    r -= weights[i] ?? 0;
+    if (r <= 0) return arr[i];
+  }
+  return arr[arr.length - 1];
+}
 
 export const PLAYBOOKS: Playbook[] = [
   {
@@ -98,7 +113,10 @@ function isoDate(d: Date) {
 
 function generateTrades(): Trade[] {
   const trades: Trade[] = [];
-  const start = new Date("2026-06-01T00:00:00Z");
+  // Six months rather than three: the pattern engine needs a real history to
+  // find anything, and a demo set that shows an empty Patterns page teaches
+  // the wrong lesson about the feature.
+  const start = new Date("2026-03-02T00:00:00Z");
   const end = new Date("2026-08-25T00:00:00Z");
   const RISK = 250; // $ per 1R at a fixed prop-account risk size
   let tradeIndex = 0;
@@ -116,10 +134,29 @@ function generateTrades(): Trade[] {
     for (let i = 0; i < tradesToday; i++) {
       const { symbol, base, pip } = weightedSymbol();
       const playbook = pick(PLAYBOOKS);
-      const grade = pick(SETUP_GRADES);
       const side = rand() < 0.5 ? "long" : "short";
+
+      // The three model criteria come first; grade is derived from them, the
+      // same way the form now works. Win probability follows the criteria
+      // rather than a grade picked out of the air, so the demo history
+      // behaves like a real one under the pattern engine.
+      const dailyAligned = rand() < 0.66;
+      const smtQuality = pickWeighted(SMT_QUALITIES, [0.5, 0.26, 0.16, 0.08]);
+      const sweepQuality = pickWeighted(SWEEP_QUALITIES, [0.55, 0.3, 0.15]);
+      const criteria = { dailyAligned, smtQuality, sweepQuality };
+      const grade = derivedGrade(criteria) ?? "C";
+      const met = criteriaMet(criteria);
+
+      // Entering early instead of waiting for the OB retest is the model's
+      // recurring execution mistake, and it is made to cost here so the
+      // Patterns page has something real to find in the demo history.
+      const entryExecution = pickWeighted(ENTRY_EXECUTIONS, [0.58, 0.28, 0.09, 0.05]);
+      const executionPenalty =
+        entryExecution === "Early — engulfing candle" ? 0.16 : 0;
+
       const winProbability =
-        grade === "A+" ? 0.68 : grade === "A" ? 0.58 : grade === "B" ? 0.48 : 0.38;
+        (met === 3 ? 0.76 : met === 2 ? 0.46 : met === 1 ? 0.32 : 0.22) -
+        executionPenalty;
       const isWin = rand() < winProbability;
 
       let rMultiple: number;
@@ -167,6 +204,12 @@ function generateTrades(): Trade[] {
         entryModel: pick(ENTRY_MODELS),
         entryTime: pick(ENTRY_TIMES),
 
+        dailyAligned,
+        smtQuality,
+        smtPair: smtQuality === "None" ? "None" : pick(SMT_PAIRS.slice(0, 3)),
+        sweepQuality,
+        entryExecution,
+
         entryPrice: Math.round(entryPrice * 100000) / 100000,
         exitPrice: Math.round(exitPrice * 100000) / 100000,
         stopLoss: Math.round(stopLoss * 100000) / 100000,
@@ -174,7 +217,7 @@ function generateTrades(): Trade[] {
         plannedRR: 2,
         size: Math.round((0.5 + rand() * 1.5) * 10) / 10,
         riskAmount: RISK,
-        riskPct: 1,
+        riskPct: grade === "A+" && dailyAligned ? 1 : rand() < 0.75 ? 0.5 : 1,
         rMultiple,
         pnl,
         durationMinutes: Math.round(15 + rand() * 210),

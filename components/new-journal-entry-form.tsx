@@ -4,11 +4,15 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { addJournalEntry } from "@/lib/actions/journal";
 import { initialJournalFormState } from "@/lib/actions/state";
+import type { Trade } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const MOODS = ["disciplined", "confident", "neutral", "frustrated"] as const;
 
-export function NewJournalEntryForm() {
+export function NewJournalEntryForm({ trades }: { trades: Trade[] }) {
   const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [linked, setLinked] = useState<string[]>([]);
   const [state, formAction, pending] = useActionState(
     addJournalEntry,
     initialJournalFormState
@@ -19,6 +23,7 @@ export function NewJournalEntryForm() {
   useEffect(() => {
     if (wasPending.current && !pending && !state.error) {
       formRef.current?.reset();
+      setLinked([]);
       setOpen(false);
     }
     wasPending.current = pending;
@@ -36,6 +41,10 @@ export function NewJournalEntryForm() {
       </button>
     );
   }
+
+  // Only the day's own trades are offered: a reflection is about that
+  // session, and a list of every trade ever logged would be unusable.
+  const sameDay = trades.filter((t) => t.date === date);
 
   return (
     <form
@@ -65,7 +74,8 @@ export function NewJournalEntryForm() {
             name="date"
             type="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
             className="min-h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
@@ -113,6 +123,49 @@ export function NewJournalEntryForm() {
           placeholder="What happened, what you'd repeat, what you'd change..."
           className="w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
+      </div>
+
+      <input type="hidden" name="linkedTradeIds" value={linked.join("|")} />
+      <div>
+        <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+          Trades this is about
+        </p>
+        {sameDay.length === 0 ? (
+          <p className="text-xs text-faint">
+            No trades logged on {date}. Pick another date to link one.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {sameDay.map((t) => {
+              const on = linked.includes(t.id);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() =>
+                    setLinked((ids) =>
+                      on ? ids.filter((i) => i !== t.id) : [...ids, t.id]
+                    )
+                  }
+                  className={cn(
+                    "flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    on
+                      ? "border-accent-border bg-accent-soft text-foreground"
+                      : "border-border text-muted-foreground hover:bg-secondary"
+                  )}
+                >
+                  {t.symbol}
+                  <span className={t.result === "Win" ? "text-profit" : "text-loss"}>
+                    {t.rMultiple >= 0 ? "+" : ""}
+                    {t.rMultiple.toFixed(2)}R
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {state.error ? (

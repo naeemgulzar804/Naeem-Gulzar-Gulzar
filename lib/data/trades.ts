@@ -1,6 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import type { Trade, TradeGrade, TradeResult, TradeSide } from "@/lib/types";
+import type {
+  EntryExecution,
+  SmtPair,
+  SmtQuality,
+  SweepQuality,
+  Trade,
+  TradeGrade,
+  TradeResult,
+  TradeSide,
+} from "@/lib/types";
 
 type TradeRow = Database["public"]["Tables"]["trades"]["Row"];
 
@@ -26,6 +35,12 @@ function mapTrade(row: TradeRow): Trade {
     liquidityPurge: row.liquidity_purge,
     entryModel: row.entry_model ?? "",
     entryTime: row.entry_time ?? "",
+
+    dailyAligned: row.daily_aligned,
+    smtQuality: row.smt_quality ?? "",
+    smtPair: row.smt_pair ?? "",
+    sweepQuality: row.sweep_quality ?? "",
+    entryExecution: row.entry_execution ?? "",
 
     entryPrice: row.entry_price ?? 0,
     exitPrice: row.exit_price ?? 0,
@@ -101,6 +116,12 @@ export interface TradeInput {
   entryModel: string;
   entryTime: string;
 
+  dailyAligned: boolean | null;
+  smtQuality: SmtQuality | "";
+  smtPair: SmtPair | "";
+  sweepQuality: SweepQuality | "";
+  entryExecution: EntryExecution | "";
+
   entryPrice: number;
   exitPrice: number;
   stopLoss: number;
@@ -148,6 +169,12 @@ function toRow(input: TradeInput) {
     liquidity_purge: input.liquidityPurge,
     entry_model: input.entryModel || null,
     entry_time: input.entryTime || null,
+
+    daily_aligned: input.dailyAligned,
+    smt_quality: input.smtQuality || null,
+    smt_pair: input.smtPair || null,
+    sweep_quality: input.sweepQuality || null,
+    entry_execution: input.entryExecution || null,
 
     entry_price: input.entryPrice || null,
     exit_price: input.exitPrice || null,

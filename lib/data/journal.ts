@@ -31,6 +31,8 @@ export interface NewJournalEntryInput {
   title: string;
   mood: "confident" | "neutral" | "frustrated" | "disciplined";
   content: string;
+  /** Trades this reflection is about, so the entry links back to them. */
+  linkedTradeIds?: string[];
 }
 
 export async function createJournalEntry(input: NewJournalEntryInput) {
@@ -46,6 +48,7 @@ export async function createJournalEntry(input: NewJournalEntryInput) {
     title: input.title,
     mood: input.mood,
     content: input.content,
+    linked_trade_ids: input.linkedTradeIds ?? [],
   });
 
   if (error) throw error;

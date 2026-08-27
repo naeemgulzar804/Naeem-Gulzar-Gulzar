@@ -27,3 +27,13 @@ export interface DangerState {
 }
 
 export const initialDangerState: DangerState = { error: null, deleted: null };
+
+export interface SettingsFormState {
+  error: string | null;
+  savedAt: number | null;
+}
+
+export const initialSettingsFormState: SettingsFormState = {
+  error: null,
+  savedAt: null,
+};

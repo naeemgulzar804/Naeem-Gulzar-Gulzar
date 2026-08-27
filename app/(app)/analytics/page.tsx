@@ -8,12 +8,18 @@ import {
   WinRateDonut,
 } from "@/components/analytics-charts";
 import { EquityCurveChart } from "@/components/equity-curve-chart";
+import { ExpectancyPanel, RDistribution } from "@/components/expectancy-panel";
+import { DisciplinePanel } from "@/components/discipline-panel";
 import { getTrades } from "@/lib/data/trades";
+import { getAccountSettings } from "@/lib/data/settings";
 import {
   confluenceWinRate,
   getEquityCurve,
+  getExpectancy,
+  getRDistribution,
   groupWinRate,
 } from "@/lib/analytics";
+import { getDisciplineRates } from "@/lib/risk";
 import {
   CONFLUENCES,
   ENTRY_MODELS,
@@ -27,7 +33,10 @@ import {
 export const metadata = { title: "Analytics — TradeLog" };
 
 export default async function AnalyticsPage() {
-  const trades = await getTrades();
+  const [trades, settings] = await Promise.all([
+    getTrades(),
+    getAccountSettings(),
+  ]);
 
   if (trades.length === 0) {
     return (
@@ -53,6 +62,9 @@ export default async function AnalyticsPage() {
   const losses = trades.filter((t) => t.result === "Loss").length;
   const breakEven = trades.filter((t) => t.result === "Break Even").length;
   const symbols = Array.from(new Set(trades.map((t) => t.symbol))).sort();
+  const expectancy = getExpectancy(trades);
+  const rBuckets = getRDistribution(trades);
+  const discipline = getDisciplineRates(trades, settings);
 
   return (
     <>
@@ -67,9 +79,17 @@ export default async function AnalyticsPage() {
             <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
               Equity curve
             </h2>
-            <EquityCurveChart data={getEquityCurve(trades)} />
+            <EquityCurveChart
+              data={getEquityCurve(trades, settings.startingBalance)}
+            />
           </div>
           <WinRateDonut wins={wins} losses={losses} breakEven={breakEven} />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {expectancy ? <ExpectancyPanel expectancy={expectancy} /> : null}
+          <RDistribution buckets={rBuckets} />
+          <DisciplinePanel rates={discipline} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

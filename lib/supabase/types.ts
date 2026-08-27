@@ -6,6 +6,14 @@ export type TradeSide = "long" | "short";
 export type TradeGrade = "A+" | "A" | "B" | "C";
 export type TradeResult = "Win" | "Loss" | "Break Even";
 export type JournalMood = "confident" | "neutral" | "frustrated" | "disciplined";
+export type SmtQuality = "Clear" | "Borderline" | "Forced" | "None";
+export type SmtPair = "GBPUSD" | "DXY" | "Both" | "None";
+export type SweepQuality = "Clean" | "Borderline" | "None";
+export type EntryExecution =
+  | "OB retest"
+  | "Early — engulfing candle"
+  | "Late — chased after retest"
+  | "Other";
 
 type TradeRow = {
   id: string;
@@ -25,6 +33,12 @@ type TradeRow = {
   liquidity_purge: boolean | null;
   entry_model: string | null;
   entry_time: string | null;
+
+  daily_aligned: boolean | null;
+  smt_quality: SmtQuality | null;
+  smt_pair: SmtPair | null;
+  sweep_quality: SweepQuality | null;
+  entry_execution: EntryExecution | null;
 
   entry_price: number | null;
   exit_price: number | null;
@@ -77,6 +91,12 @@ type TradeInsert = {
   liquidity_purge?: boolean | null;
   entry_model?: string | null;
   entry_time?: string | null;
+
+  daily_aligned?: boolean | null;
+  smt_quality?: SmtQuality | null;
+  smt_pair?: SmtPair | null;
+  sweep_quality?: SweepQuality | null;
+  entry_execution?: EntryExecution | null;
 
   entry_price?: number | null;
   exit_price?: number | null;
@@ -165,6 +185,36 @@ export interface Database {
         };
         Update: Partial<
           Database["public"]["Tables"]["journal_entries"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      account_settings: {
+        Row: {
+          user_id: string;
+          starting_balance: number;
+          daily_loss_limit: number | null;
+          max_drawdown: number | null;
+          profit_target: number | null;
+          max_losses_per_day: number;
+          risk_pct_aligned: number;
+          risk_pct_unaligned: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id?: string;
+          starting_balance?: number;
+          daily_loss_limit?: number | null;
+          max_drawdown?: number | null;
+          profit_target?: number | null;
+          max_losses_per_day?: number;
+          risk_pct_aligned?: number;
+          risk_pct_unaligned?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["account_settings"]["Insert"]
         >;
         Relationships: [];
       };

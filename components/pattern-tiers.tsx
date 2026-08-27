@@ -94,9 +94,9 @@ export function PatternTiers({ report }: { report: PatternReport }) {
               <span className="text-foreground">
                 Treat them as questions, not conclusions
               </span>{" "}
-              — on a history with no real edges at all, roughly one of these
-              still shows up about half the time. Keep logging and they either
-              harden or disappear.
+              — tested against histories with no real edges in them at all, one
+              or two of these still turn up about half the time. Keep logging
+              and they either harden or disappear.
             </p>
           </div>
 

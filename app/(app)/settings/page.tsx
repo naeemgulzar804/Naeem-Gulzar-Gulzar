@@ -1,29 +1,59 @@
 import { PageHeader } from "@/components/page-header";
+import { AccountSettingsForm } from "@/components/account-settings-form";
+import { ExportTrades } from "@/components/export-trades";
 import { DeleteAllTrades } from "@/components/delete-all-trades";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { getTrades } from "@/lib/data/trades";
+import { getAccountSettings } from "@/lib/data/settings";
 
 export const metadata = { title: "Settings — TradeLog" };
 
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id} className="max-w-3xl">
+      <h2
+        id={id}
+        className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground"
+      >
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
 export default async function SettingsPage() {
-  const trades = await getTrades();
+  const [trades, settings] = await Promise.all([
+    getTrades(),
+    getAccountSettings(),
+  ]);
 
   return (
     <>
       <PageHeader
         title="Settings"
-        description="Manage the data in your journal."
+        description="Your account, your rules, and your data."
       />
 
       <div className="flex-1 space-y-8 px-4 py-6 sm:px-8">
-        <section aria-labelledby="data-heading" className="max-w-3xl">
-          <h2
-            id="data-heading"
-            className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground"
-          >
-            Sample data
-          </h2>
-          <div className="rounded-2xl border border-border bg-card p-5">
+        <Section id="account-heading" title="Account & risk limits">
+          <AccountSettingsForm settings={settings} />
+        </Section>
+
+        <Section id="export-heading" title="Backup">
+          <ExportTrades trades={trades} />
+        </Section>
+
+        <Section id="data-heading" title="Sample data">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
             <p className="text-sm text-muted-foreground">
               Loads a set of realistic demo trades so you can see how the
               dashboard, analytics, and pattern detection behave with a full
@@ -33,17 +63,11 @@ export default async function SettingsPage() {
               <SeedDemoButton />
             </div>
           </div>
-        </section>
+        </Section>
 
-        <section aria-labelledby="danger-heading" className="max-w-3xl">
-          <h2
-            id="danger-heading"
-            className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground"
-          >
-            Danger zone
-          </h2>
+        <Section id="danger-heading" title="Danger zone">
           <DeleteAllTrades tradeCount={trades.length} />
-        </section>
+        </Section>
       </div>
     </>
   );

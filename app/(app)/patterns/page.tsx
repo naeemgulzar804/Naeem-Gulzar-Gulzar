@@ -4,13 +4,17 @@ import { EmptyState } from "@/components/empty-state";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { PatternTiers } from "@/components/pattern-tiers";
 import { getTrades } from "@/lib/data/trades";
+import { getAccountSettings } from "@/lib/data/settings";
 import { findPatterns } from "@/lib/patterns";
 
 export const metadata = { title: "Patterns — TradeLog" };
 
 export default async function PatternsPage() {
-  const trades = await getTrades();
-  const report = findPatterns(trades);
+  const [trades, settings] = await Promise.all([
+    getTrades(),
+    getAccountSettings(),
+  ]);
+  const report = findPatterns(trades, settings);
 
   return (
     <>

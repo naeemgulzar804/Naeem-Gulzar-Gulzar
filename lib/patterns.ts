@@ -1,4 +1,6 @@
-import type { Trade, TradePattern } from "@/lib/types";
+import type { AccountSettings, Trade, TradePattern } from "@/lib/types";
+import { DEFAULT_ACCOUNT_SETTINGS, isKillZone } from "@/lib/types";
+import { criteriaMet, sizedCorrectly } from "@/lib/model";
 
 /*
  * Pattern detection over the trade history.
@@ -103,6 +105,13 @@ function zScore(wins: number, n: number, baselineRate: number) {
 interface Scored {
   pattern: TradePattern;
   z: number;
+  /**
+   * Identifies the exact set of trades. Different slices often describe the
+   * same trades — "A+ setups" and "All three criteria met" are the same rows
+   * by construction — and reporting both as separate findings would overstate
+   * how much evidence there is.
+   */
+  signature: string;
 }
 
 /**
@@ -132,6 +141,10 @@ function score(
 
   return {
     z: zScore(wins, closed.length, baselineRate),
+    signature: closed
+      .map((t) => t.id)
+      .sort()
+      .join(","),
     pattern: {
       id: `${idPrefix}-${candidate.title}`,
       title: candidate.title,
@@ -224,6 +237,107 @@ function revengeCandidate(trades: Trade[]): Candidate | null {
   };
 }
 
+/*
+ * The model's own criteria. These matter more than any generic slice: the
+ * question the journal exists to answer is "what do my losing trades share
+ * that my winning ones don't", and the model says the answer should be
+ * found here first.
+ */
+function modelCandidates(
+  trades: Trade[],
+  settings: AccountSettings
+): (Candidate | null)[] {
+  const subset = (predicate: (t: Trade) => boolean | null) =>
+    trades.filter((t) => predicate(t) === true);
+
+  const build = (
+    title: string,
+    detail: string,
+    predicate: (t: Trade) => boolean | null
+  ): Candidate | null => {
+    const picked = subset(predicate);
+    return picked.length ? { title, detail, subset: picked } : null;
+  };
+
+  const candidates: (Candidate | null)[] = [
+    build(
+      "Daily bias aligned",
+      "Daily timeframe agreed with the H4 direction traded.",
+      (t) => t.dailyAligned
+    ),
+    build(
+      "Daily bias NOT aligned",
+      "Taken against the daily timeframe.",
+      (t) => (t.dailyAligned === null ? null : !t.dailyAligned)
+    ),
+    build(
+      "Clear SMT divergence",
+      "SMT on GBPUSD/DXY was obvious, not forced.",
+      (t) => (t.smtQuality ? t.smtQuality === "Clear" : null)
+    ),
+    build(
+      "Forced SMT divergence",
+      "SMT was talked into rather than seen.",
+      (t) => (t.smtQuality ? t.smtQuality === "Forced" : null)
+    ),
+    build(
+      "Clean H4 liquidity sweep",
+      "A convincing stop hunt, not a graze.",
+      (t) => (t.sweepQuality ? t.sweepQuality === "Clean" : null)
+    ),
+    build(
+      "Borderline or missing sweep",
+      "Price barely touched the level.",
+      (t) => (t.sweepQuality ? t.sweepQuality !== "Clean" : null)
+    ),
+    build(
+      "Entered on the OB retest",
+      "Waited for price to return to the 15M orderblock.",
+      (t) => (t.entryExecution ? t.entryExecution === "OB retest" : null)
+    ),
+    build(
+      "Entered early on the engulfing candle",
+      "Did not wait for the retest.",
+      (t) =>
+        t.entryExecution ? t.entryExecution === "Early — engulfing candle" : null
+    ),
+    build(
+      "Entered in a kill zone",
+      "1 / 5 / 9 AM New York.",
+      (t) => (t.entryTime ? isKillZone(t.entryTime) : null)
+    ),
+    build(
+      "Entered outside the kill zones",
+      "Taken at a time the model does not trade.",
+      (t) => (t.entryTime ? !isKillZone(t.entryTime) : null)
+    ),
+    build(
+      "Sized above what the model allows",
+      "Full risk on a setup that earned half.",
+      (t) => {
+        const ok = sizedCorrectly(t, settings);
+        return ok === null ? null : !ok;
+      }
+    ),
+  ];
+
+  // All three criteria met, versus fewer — the headline comparison.
+  for (const n of [3, 2] as const) {
+    candidates.push(
+      build(
+        n === 3 ? "All three A+ criteria met" : "Only two criteria met",
+        n === 3 ? "The setups the model actually asks for." : "B-grade by the model's own rule.",
+        (t) =>
+          t.dailyAligned === null || !t.smtQuality || !t.sweepQuality
+            ? null
+            : criteriaMet(t) === n
+      )
+    );
+  }
+
+  return candidates;
+}
+
 /** Trades tagged with a given confluence. */
 function confluenceCandidates(trades: Trade[]): Candidate[] {
   const groups = new Map<string, Trade[]>();
@@ -257,7 +371,10 @@ export interface PatternReport {
   watchLeaks: TradePattern[];
 }
 
-export function findPatterns(trades: Trade[]): PatternReport {
+export function findPatterns(
+  trades: Trade[],
+  settings: AccountSettings = DEFAULT_ACCOUNT_SETTINGS
+): PatternReport {
   const closed = trades.filter(isClosed);
   const baselineRate = closed.length
     ? (closed.filter(isWin).length / closed.length) * 100
@@ -311,6 +428,7 @@ export function findPatterns(trades: Trade[]): PatternReport {
     "dxe"
   );
 
+  add(modelCandidates(closed, settings), "model");
   add([overtradingCandidate(closed)], "over");
   add([revengeCandidate(closed)], "revenge");
 
@@ -318,13 +436,16 @@ export function findPatterns(trades: Trade[]): PatternReport {
 
   // Strongest evidence first. Titles are deduplicated across both tiers at
   // once, so a slice never appears as confirmed and provisional together.
-  const seen = new Set<string>();
+  const seenTitles = new Set<string>();
+  const seenSubsets = new Set<string>();
   const ranked = scored
     .filter((s) => Math.abs(s.z) >= WATCH_Z)
     .sort((a, b) => Math.abs(b.z) - Math.abs(a.z))
     .filter((s) => {
-      if (seen.has(s.pattern.title)) return false;
-      seen.add(s.pattern.title);
+      if (seenTitles.has(s.pattern.title)) return false;
+      if (seenSubsets.has(s.signature)) return false;
+      seenTitles.add(s.pattern.title);
+      seenSubsets.add(s.signature);
       return true;
     });
 

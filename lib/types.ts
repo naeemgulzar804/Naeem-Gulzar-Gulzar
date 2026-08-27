@@ -49,7 +49,34 @@ export const STRATEGIES = [
 export const SETUP_GRADES: TradeGrade[] = ["A+", "A", "B", "C"];
 export const TIMEFRAMES = ["1M", "5M", "15M", "1H", "4H", "Daily"] as const;
 export const H4_CANDLES = ["1 AM", "5 AM", "9 AM"] as const;
-export const ENTRY_TIMES = ["3 AM", "6 AM", "9 AM"] as const;
+
+/*
+ * The model's kill zones: the 1/5/9 AM New York H4 candle opens, and nothing
+ * else. An earlier version of this journal offered 3/6/9 AM instead, so trades
+ * logged before that fix carry those values; they stay readable everywhere but
+ * are not offered for new trades and do not count as kill-zone entries.
+ */
+export const ENTRY_TIMES = ["1 AM", "5 AM", "9 AM"] as const;
+
+export const SMT_QUALITIES = ["Clear", "Borderline", "Forced", "None"] as const;
+export const SMT_PAIRS = ["GBPUSD", "DXY", "Both", "None"] as const;
+export const SWEEP_QUALITIES = ["Clean", "Borderline", "None"] as const;
+export const ENTRY_EXECUTIONS = [
+  "OB retest",
+  "Early — engulfing candle",
+  "Late — chased after retest",
+  "Other",
+] as const;
+
+export type SmtQuality = (typeof SMT_QUALITIES)[number];
+export type SmtPair = (typeof SMT_PAIRS)[number];
+export type SweepQuality = (typeof SWEEP_QUALITIES)[number];
+export type EntryExecution = (typeof ENTRY_EXECUTIONS)[number];
+
+/** True when the trade was entered at one of the model's kill zones. */
+export function isKillZone(entryTime: string) {
+  return (ENTRY_TIMES as readonly string[]).includes(entryTime);
+}
 
 export const ENTRY_MODELS = [
   "Bullish OB",
@@ -108,6 +135,14 @@ export interface Trade {
   liquidityPurge: boolean | null;
   entryModel: string;
   entryTime: string;
+
+  // The three A+ criteria, plus how the entry was actually executed.
+  // Null/"" means the trade predates these fields, not that the answer is no.
+  dailyAligned: boolean | null;
+  smtQuality: SmtQuality | "";
+  smtPair: SmtPair | "";
+  sweepQuality: SweepQuality | "";
+  entryExecution: EntryExecution | "";
 
   // Execution & risk
   entryPrice: number;
@@ -181,6 +216,28 @@ export interface Stats {
   totalTrades: number;
   currentStreak: { type: "win" | "loss"; count: number };
 }
+
+export interface AccountSettings {
+  startingBalance: number;
+  /** Null means the limit is not enforced. */
+  dailyLossLimit: number | null;
+  maxDrawdown: number | null;
+  profitTarget: number | null;
+  maxLossesPerDay: number;
+  /** Risk when Daily TF agrees with the H4 direction, and when it doesn't. */
+  riskPctAligned: number;
+  riskPctUnaligned: number;
+}
+
+export const DEFAULT_ACCOUNT_SETTINGS: AccountSettings = {
+  startingBalance: 50000,
+  dailyLossLimit: null,
+  maxDrawdown: null,
+  profitTarget: null,
+  maxLossesPerDay: 2,
+  riskPctAligned: 1,
+  riskPctUnaligned: 0.5,
+};
 
 export interface GroupWinRate {
   rate: number;

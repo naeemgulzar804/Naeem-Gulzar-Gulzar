@@ -2,7 +2,14 @@
 
 import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Circle, Hourglass, Target } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Circle,
+  Hourglass,
+  Target,
+  XCircle,
+} from "lucide-react";
 import {
   ChipMultiSelect,
   Field,
@@ -18,20 +25,30 @@ import {
 } from "@/components/screenshot-uploader";
 import { saveTrade } from "@/lib/actions/trades";
 import { initialTradeFormState } from "@/lib/actions/state";
-import type { Playbook, Trade } from "@/lib/types";
+import type { AccountSettings, Playbook, Trade } from "@/lib/types";
 import {
   CONFLUENCES,
   EMOTIONS,
+  ENTRY_EXECUTIONS,
   ENTRY_MODELS,
   ENTRY_TIMES,
   H4_CANDLES,
+  isKillZone,
   PAIRS,
   SESSIONS,
-  SETUP_GRADES,
+  SMT_PAIRS,
+  SMT_QUALITIES,
   STRATEGIES,
+  SWEEP_QUALITIES,
   TIMEFRAMES,
   WEEKDAYS,
 } from "@/lib/types";
+import {
+  allowedRiskPct,
+  criteriaStates,
+  derivedGrade,
+  gradeVerdict,
+} from "@/lib/model";
 import { cn } from "@/lib/utils";
 
 interface FormState {
@@ -48,7 +65,11 @@ interface FormState {
   liquidityPurge: string;
   entryModel: string;
   entryTime: string;
-  grade: string;
+  dailyAligned: string;
+  smtQuality: string;
+  smtPair: string;
+  sweepQuality: string;
+  entryExecution: string;
   entryPrice: string;
   stopLoss: string;
   takeProfit: string;
@@ -86,7 +107,11 @@ function initialForm(trade?: Trade): FormState {
       liquidityPurge: "",
       entryModel: "",
       entryTime: "",
-      grade: "",
+      dailyAligned: "",
+      smtQuality: "",
+      smtPair: "",
+      sweepQuality: "",
+      entryExecution: "",
       entryPrice: "",
       stopLoss: "",
       takeProfit: "",
@@ -124,7 +149,12 @@ function initialForm(trade?: Trade): FormState {
       trade.liquidityPurge === null ? "" : trade.liquidityPurge ? "Yes" : "No",
     entryModel: trade.entryModel,
     entryTime: trade.entryTime,
-    grade: trade.grade,
+    dailyAligned:
+      trade.dailyAligned === null ? "" : trade.dailyAligned ? "Yes" : "No",
+    smtQuality: trade.smtQuality,
+    smtPair: trade.smtPair,
+    sweepQuality: trade.sweepQuality,
+    entryExecution: trade.entryExecution,
     entryPrice: num(trade.entryPrice),
     stopLoss: num(trade.stopLoss),
     takeProfit: num(trade.takeProfit),
@@ -150,9 +180,11 @@ function initialForm(trade?: Trade): FormState {
 export function TradeForm({
   playbooks,
   trade,
+  settings,
 }: {
   playbooks: Playbook[];
   trade?: Trade;
+  settings: AccountSettings;
 }) {
   const [state, formAction, pending] = useActionState(
     saveTrade,
@@ -208,22 +240,52 @@ export function TradeForm({
     return realizedR * risk;
   }, [realizedR, form.riskAmount]);
 
-  const checklist: [string, boolean][] = [
-    ["Pair selected", !!form.symbol],
-    ["Daily bias set", !!form.dailyBias],
-    ["H4 candle", !!form.h4Candle],
-    ["Liquidity purge", form.liquidityPurge === "Yes"],
-    ["Entry @ 3 AM", form.entryTime === "3 AM"],
-    ["Quality = A+", form.grade === "A+"],
-    ["3+ confluences", form.confluences.length >= 3],
-    ["Entry price", !!form.entryPrice],
-    ["Stop loss", !!form.stopLoss],
-    ["Result set", !!form.result],
+  /*
+   * The model's three criteria, and the grade they imply. Grade is derived,
+   * never chosen: the previous checklist listed "Quality = A+" as one of the
+   * things that made a setup A+, which graded nothing.
+   */
+  const criteria = {
+    dailyAligned:
+      form.dailyAligned === "Yes"
+        ? true
+        : form.dailyAligned === "No"
+          ? false
+          : null,
+    smtQuality: form.smtQuality,
+    sweepQuality: form.sweepQuality,
+  };
+  const states = criteriaStates(criteria);
+  const grade = derivedGrade(criteria);
+  const verdict = gradeVerdict(grade);
+
+  // A legacy trade with no criteria recorded keeps the grade it was saved
+  // with, rather than being silently downgraded on a routine edit.
+  const postedGrade = grade ?? trade?.grade ?? "B";
+
+  const inKillZone = form.entryTime ? isKillZone(form.entryTime) : null;
+  const onRetest = form.entryExecution ? form.entryExecution === "OB retest" : null;
+
+  // Risk sizing against what the model allows for this grade.
+  const allowedRisk = allowedRiskPct(criteria, settings);
+  const enteredRisk = parseFloat(form.riskPct);
+  const overRisked =
+    allowedRisk !== null &&
+    Number.isFinite(enteredRisk) &&
+    enteredRisk > allowedRisk + 0.05;
+
+  const discipline: { label: string; met: boolean | null }[] = [
+    { label: "Entry in a kill zone (1/5/9 AM NY)", met: inKillZone },
+    { label: "Entered on the OB retest", met: onRetest },
+    {
+      label:
+        allowedRisk === null
+          ? "Risk sized to the model"
+          : `Risk sized to the model (${allowedRisk}%)`,
+      met: allowedRisk === null || !Number.isFinite(enteredRisk) ? null : !overRisked,
+    },
+    { label: "Result recorded", met: form.result ? true : null },
   ];
-  const isAplus =
-    form.confluences.length >= 3 &&
-    form.liquidityPurge === "Yes" &&
-    form.entryTime === "3 AM";
 
   return (
     <form action={formAction} className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_280px] xl:items-start">
@@ -232,6 +294,7 @@ export function TradeForm({
       {trade ? <input type="hidden" name="id" value={trade.id} /> : null}
       {Object.entries({
         ...form,
+        grade: postedGrade,
         confluences: form.confluences.join("|"),
         confidence: String(form.confidence),
         plannedRR: plannedRR !== null ? plannedRR.toFixed(4) : "",
@@ -270,18 +333,95 @@ export function TradeForm({
             <PillSelect label="Direction" value={form.side} onChange={(v) => set("side", v)} options={["Long", "Short"]} tone="accent" />
             <PillSelect label="Market Condition" value={form.marketCondition} onChange={(v) => set("marketCondition", v)} options={["Balanced", "Imbalanced"]} tone="accent" />
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* The old yes/no "Liquidity Purge" control lived here. The A+
+              criteria section now asks the same question with the grading the
+              model actually uses, and asking twice in different words is how a
+              journal ends up disagreeing with itself. The stored value is kept
+              for trades logged before that change. */}
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <PillSelect label="H4 Candle" value={form.h4Candle} onChange={(v) => set("h4Candle", v)} options={H4_CANDLES} tone="amber" />
-            <PillSelect label="Liquidity Purge" value={form.liquidityPurge} onChange={(v) => set("liquidityPurge", v)} options={["Yes", "No"]} tone="profit" />
             <PillSelect label="Entry Model" value={form.entryModel} onChange={(v) => set("entryModel", v)} options={ENTRY_MODELS} tone="accent" />
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <PillSelect label="Entry Time" value={form.entryTime} onChange={(v) => set("entryTime", v)} options={ENTRY_TIMES} tone="profit" />
-            <PillSelect label="Setup Quality" value={form.grade} onChange={(v) => set("grade", v)} options={SETUP_GRADES} tone="amber" />
+          <div className="mt-4">
+            <PillSelect
+              label="Entry Time (NY kill zone)"
+              value={form.entryTime}
+              onChange={(v) => set("entryTime", v)}
+              options={ENTRY_TIMES}
+              tone="profit"
+            />
+            {form.entryTime && !isKillZone(form.entryTime) ? (
+              <p className="mt-2 text-xs text-loss">
+                {form.entryTime} is outside the model&rsquo;s kill zones. Kept
+                as logged, but it will not count as a kill-zone entry.
+              </p>
+            ) : null}
           </div>
         </FormSection>
 
-        <FormSection step={3} title="Entry & Risk">
+        <FormSection step={3} title="A+ Criteria">
+          <p className="mb-4 text-xs text-muted-foreground">
+            All three present is an A+ setup at full risk. Two is B-grade at
+            half risk. One or none, the model says stand down. The grade is
+            worked out from these answers — you don&rsquo;t set it yourself.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <PillSelect
+              label="1. Daily bias aligns with H4 direction"
+              value={form.dailyAligned}
+              onChange={(v) => set("dailyAligned", v)}
+              options={["Yes", "No"]}
+              tone="profit"
+            />
+            <PillSelect
+              label="3. H4 liquidity sweep"
+              value={form.sweepQuality}
+              onChange={(v) => set("sweepQuality", v)}
+              options={SWEEP_QUALITIES}
+              tone="amber"
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <PillSelect
+              label="2. SMT divergence"
+              value={form.smtQuality}
+              onChange={(v) => set("smtQuality", v)}
+              options={SMT_QUALITIES}
+              tone="accent"
+            />
+            <PillSelect
+              label="SMT confirmed on"
+              value={form.smtPair}
+              onChange={(v) => set("smtPair", v)}
+              options={SMT_PAIRS}
+              tone="accent"
+            />
+          </div>
+          {form.smtQuality === "Forced" ? (
+            <p className="mt-3 rounded-xl bg-loss/10 px-3 py-2 text-xs text-loss">
+              Logging this honestly is the whole point — forced SMT is the
+              easiest criterion to talk yourself into after the fact.
+            </p>
+          ) : null}
+
+          <div className="mt-4">
+            <PillSelect
+              label="How the entry was executed"
+              value={form.entryExecution}
+              onChange={(v) => set("entryExecution", v)}
+              options={ENTRY_EXECUTIONS}
+              tone="accent"
+            />
+            {form.entryExecution === "Early — engulfing candle" ? (
+              <p className="mt-2 text-xs text-loss">
+                Entered at the engulfing candle rather than waiting for price to
+                return to the 15M orderblock.
+              </p>
+            ) : null}
+          </div>
+        </FormSection>
+
+        <FormSection step={4} title="Entry & Risk">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <TextField label="Entry Price" id="entryPrice" type="number" step="any" value={form.entryPrice} onChange={(v) => set("entryPrice", v)} placeholder="1.08500" />
             <TextField label="Stop Loss" id="stopLoss" type="number" step="any" value={form.stopLoss} onChange={(v) => set("stopLoss", v)} placeholder="1.08200" />
@@ -346,7 +486,7 @@ export function TradeForm({
           </div>
         </FormSection>
 
-        <FormSection step={4} title="Confluence Tracking">
+        <FormSection step={5} title="Confluence Tracking">
           <ChipMultiSelect
             label="Confluences"
             values={form.confluences}
@@ -368,7 +508,7 @@ export function TradeForm({
           ) : null}
         </FormSection>
 
-        <FormSection step={5} title="Psychology">
+        <FormSection step={6} title="Psychology">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <SelectField label="Emotion Before" id="emotionBefore" value={form.emotionBefore} onChange={(v) => set("emotionBefore", v)} options={EMOTIONS} />
             <SelectField label="Emotion During" id="emotionDuring" value={form.emotionDuring} onChange={(v) => set("emotionDuring", v)} options={EMOTIONS} />
@@ -389,14 +529,14 @@ export function TradeForm({
           </div>
         </FormSection>
 
-        <FormSection step={6} title="Screenshots">
+        <FormSection step={7} title="Screenshots">
           <ScreenshotUploader
             paths={shots}
             onChange={(slot, path) => setShots((s) => ({ ...s, [slot]: path }))}
           />
         </FormSection>
 
-        <FormSection step={7} title="Trade Notes">
+        <FormSection step={8} title="Trade Notes">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextareaField label="Entry Reason" id="entryReason" value={form.entryReason} onChange={(v) => set("entryReason", v)} placeholder="Why did you take this trade?" />
             <TextareaField label="Exit Reason" id="exitReason" value={form.exitReason} onChange={(v) => set("exitReason", v)} placeholder="Why did you exit here?" />
@@ -436,39 +576,107 @@ export function TradeForm({
       <aside className="flex flex-col gap-3 xl:sticky xl:top-6">
         <div className="rounded-2xl border border-border bg-card p-5">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            A+ Checklist
+            A+ Criteria
           </h2>
           <ul className="space-y-1">
-            {checklist.map(([label, ok]) => (
-              <li key={label} className="flex items-center justify-between py-1.5 text-sm">
-                <span className={ok ? "text-foreground" : "text-muted-foreground"}>
-                  {label}
+            {states.map((c) => (
+              <li key={c.key} className="flex items-start justify-between gap-3 py-1.5">
+                <span className="min-w-0 text-sm">
+                  <span
+                    className={
+                      c.met === true ? "text-foreground" : "text-muted-foreground"
+                    }
+                  >
+                    {c.label}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-faint">
+                    {c.detail}
+                  </span>
                 </span>
-                {ok ? (
-                  <CheckCircle2 className="h-4 w-4 text-profit" aria-label="met" />
-                ) : (
-                  <Circle className="h-4 w-4 text-muted-foreground/40" aria-label="not met" />
-                )}
+                <CriterionIcon met={c.met} />
               </li>
             ))}
           </ul>
+
           <div
             className={cn(
-              "mt-4 rounded-lg border p-4 text-center",
-              isAplus ? "border-profit/30 bg-profit/10" : "border-border bg-secondary/40"
+              "mt-4 rounded-xl border p-4 text-center",
+              grade === "A+"
+                ? "border-profit/30 bg-profit/10"
+                : grade === "B"
+                  ? "border-amber-500/30 bg-amber-500/10"
+                  : grade === "C"
+                    ? "border-loss/30 bg-loss/10"
+                    : "border-border bg-secondary/40"
             )}
           >
-            {isAplus ? (
+            {grade === "A+" ? (
               <Target className="mx-auto mb-1.5 h-5 w-5 text-profit" aria-hidden="true" />
-            ) : (
+            ) : grade === "C" ? (
+              <XCircle className="mx-auto mb-1.5 h-5 w-5 text-loss" aria-hidden="true" />
+            ) : grade === null ? (
               <Hourglass className="mx-auto mb-1.5 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            ) : (
+              <AlertTriangle className="mx-auto mb-1.5 h-5 w-5 text-amber-500" aria-hidden="true" />
             )}
-            <p className={cn("text-xs font-bold", isAplus ? "text-profit" : "text-muted-foreground")}>
-              {isAplus ? "A+ Confirmed" : "Building setup…"}
+            <p
+              className={cn(
+                "text-xs font-bold",
+                grade === "A+"
+                  ? "text-profit"
+                  : grade === "C"
+                    ? "text-loss"
+                    : grade === "B"
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-muted-foreground"
+              )}
+            >
+              {verdict.title}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">{verdict.detail}</p>
           </div>
+
+          {overRisked ? (
+            <p
+              role="alert"
+              className="mt-3 rounded-xl border border-loss/30 bg-loss/10 px-3 py-2 text-xs text-loss"
+            >
+              Risking {enteredRisk}% on a setup the model caps at {allowedRisk}%.
+              Keeping full risk on a setup that didn&rsquo;t earn it is the
+              mistake that costs the most.
+            </p>
+          ) : null}
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            Execution
+          </h2>
+          <ul className="space-y-1">
+            {discipline.map((d) => (
+              <li key={d.label} className="flex items-center justify-between gap-3 py-1.5 text-sm">
+                <span className={d.met === true ? "text-foreground" : "text-muted-foreground"}>
+                  {d.label}
+                </span>
+                <CriterionIcon met={d.met} />
+              </li>
+            ))}
+          </ul>
         </div>
       </aside>
     </form>
+  );
+}
+
+/** Met, not met, or not answered — three states, not two. */
+function CriterionIcon({ met }: { met: boolean | null }) {
+  if (met === true) {
+    return <CheckCircle2 className="h-4 w-4 shrink-0 text-profit" aria-label="met" />;
+  }
+  if (met === false) {
+    return <XCircle className="h-4 w-4 shrink-0 text-loss" aria-label="not met" />;
+  }
+  return (
+    <Circle className="h-4 w-4 shrink-0 text-faint/50" aria-label="not answered" />
   );
 }

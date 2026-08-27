@@ -4,7 +4,15 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createTrade, deleteTrade, updateTrade, type TradeInput } from "@/lib/data/trades";
 import type { TradeFormState } from "@/lib/actions/state";
-import type { TradeGrade, TradeResult, TradeSide } from "@/lib/types";
+import type {
+  EntryExecution,
+  SmtPair,
+  SmtQuality,
+  SweepQuality,
+  TradeGrade,
+  TradeResult,
+  TradeSide,
+} from "@/lib/types";
 
 function str(fd: FormData, key: string): string {
   return String(fd.get(key) ?? "").trim();
@@ -29,6 +37,7 @@ export async function saveTrade(
 
   const direction = str(formData, "side");
   const purge = str(formData, "liquidityPurge");
+  const aligned = str(formData, "dailyAligned");
   const confidence = num(formData, "confidence");
   const confluences = str(formData, "confluences")
     .split("|")
@@ -51,6 +60,12 @@ export async function saveTrade(
     liquidityPurge: purge === "Yes" ? true : purge === "No" ? false : null,
     entryModel: str(formData, "entryModel"),
     entryTime: str(formData, "entryTime"),
+
+    dailyAligned: aligned === "Yes" ? true : aligned === "No" ? false : null,
+    smtQuality: str(formData, "smtQuality") as SmtQuality | "",
+    smtPair: str(formData, "smtPair") as SmtPair | "",
+    sweepQuality: str(formData, "sweepQuality") as SweepQuality | "",
+    entryExecution: str(formData, "entryExecution") as EntryExecution | "",
 
     entryPrice: num(formData, "entryPrice"),
     exitPrice: num(formData, "exitPrice"),
