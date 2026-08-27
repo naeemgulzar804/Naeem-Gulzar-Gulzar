@@ -41,7 +41,7 @@ export function NewJournalEntryForm() {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-3 rounded-xl border border-border bg-card p-5"
+      className="space-y-3 rounded-2xl border border-border bg-card p-5"
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">New journal entry</h3>
@@ -124,7 +124,7 @@ export function NewJournalEntryForm() {
       <button
         type="submit"
         disabled={pending}
-        className="flex min-h-10 items-center justify-center rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex min-h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Saving…" : "Save entry"}
       </button>

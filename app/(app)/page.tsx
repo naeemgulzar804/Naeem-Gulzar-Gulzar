@@ -42,7 +42,7 @@ export default async function DashboardPage() {
           >
             <Link
               href="/trades/new"
-              className="flex min-h-10 items-center gap-2 rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add a trade
@@ -83,6 +83,7 @@ export default async function DashboardPage() {
             icon={DollarSign}
             tone={stats.netPnl >= 0 ? "profit" : "loss"}
             hint={`${stats.totalTrades} trades logged`}
+            emphasis
           />
           <StatCard
             label="Win rate"
@@ -144,7 +145,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-foreground">Equity curve</h2>
               <span className="text-xs text-muted-foreground">
@@ -157,7 +158,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <h2 className="mb-4 text-sm font-semibold text-foreground">
               Win rate by day
             </h2>
@@ -168,7 +169,7 @@ export default async function DashboardPage() {
               }))}
             />
           </div>
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
             <h2 className="mb-4 text-sm font-semibold text-foreground">
               Entry time performance
             </h2>
@@ -182,7 +183,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
             <h2 className="mb-3 text-sm font-semibold text-foreground">Averages</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
@@ -190,7 +191,7 @@ export default async function DashboardPage() {
                   <TrendingUp className="h-4 w-4 text-profit" aria-hidden="true" />
                   Avg win
                 </dt>
-                <dd className="font-mono font-medium text-profit">
+                <dd className="tabular font-medium text-profit">
                   {formatCurrency(stats.avgWin)}
                 </dd>
               </div>
@@ -199,14 +200,14 @@ export default async function DashboardPage() {
                   <TrendingDown className="h-4 w-4 text-loss" aria-hidden="true" />
                   Avg loss
                 </dt>
-                <dd className="font-mono font-medium text-loss">
+                <dd className="tabular font-medium text-loss">
                   -{formatCurrency(stats.avgLoss)}
                 </dd>
               </div>
             </dl>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
             <h2 className="mb-3 text-sm font-semibold text-foreground">
               Best / worst day
             </h2>
@@ -215,7 +216,7 @@ export default async function DashboardPage() {
                 <dt className="text-muted-foreground">
                   {stats.bestDay ? stats.bestDay.date : "—"}
                 </dt>
-                <dd className="font-mono font-medium text-profit">
+                <dd className="tabular font-medium text-profit">
                   {stats.bestDay ? formatCurrency(stats.bestDay.pnl) : "—"}
                 </dd>
               </div>
@@ -223,7 +224,7 @@ export default async function DashboardPage() {
                 <dt className="text-muted-foreground">
                   {stats.worstDay ? stats.worstDay.date : "—"}
                 </dt>
-                <dd className="font-mono font-medium text-loss">
+                <dd className="tabular font-medium text-loss">
                   {stats.worstDay ? formatCurrency(stats.worstDay.pnl) : "—"}
                 </dd>
               </div>

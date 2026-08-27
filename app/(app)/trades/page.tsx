@@ -24,7 +24,7 @@ export default async function TradeLogPage() {
         actions={
           <Link
             href="/trades/new"
-            className="flex min-h-10 items-center gap-2 rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             New trade

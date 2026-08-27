@@ -289,7 +289,7 @@ export function TradeForm({
             <Field label="Planned R:R" id="plannedRRDisplay">
               <output
                 id="plannedRRDisplay"
-                className="flex min-h-10 items-center justify-center rounded-lg border border-ring/30 bg-ring/5 px-3 font-mono text-sm font-bold text-ring"
+                className="flex min-h-10 items-center justify-center rounded-lg border border-accent-border/30 bg-ring/5 px-3 tabular text-sm font-bold text-accent"
               >
                 {plannedRR !== null ? `1 : ${plannedRR.toFixed(2)}` : "Auto"}
               </output>
@@ -309,7 +309,7 @@ export function TradeForm({
               <output
                 id="realizedRDisplay"
                 className={cn(
-                  "flex min-h-10 items-center justify-center rounded-lg border px-3 font-mono text-sm font-bold",
+                  "flex min-h-10 items-center justify-center rounded-lg border px-3 tabular text-sm font-bold",
                   realizedR === null
                     ? "border-border bg-card text-muted-foreground"
                     : realizedR >= 0
@@ -326,7 +326,7 @@ export function TradeForm({
               <output
                 id="pnlDisplay"
                 className={cn(
-                  "flex min-h-10 items-center justify-center rounded-lg border px-3 font-mono text-sm font-bold",
+                  "flex min-h-10 items-center justify-center rounded-lg border px-3 tabular text-sm font-bold",
                   pnl === null
                     ? "border-border bg-card text-muted-foreground"
                     : pnl >= 0
@@ -420,7 +420,7 @@ export function TradeForm({
           <button
             type="submit"
             disabled={pending}
-            className="flex min-h-11 items-center justify-center rounded-lg bg-profit px-5 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-11 items-center justify-center rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Saving…" : trade ? "Update trade" : "Log trade"}
           </button>
@@ -434,7 +434,7 @@ export function TradeForm({
       </div>
 
       <aside className="flex flex-col gap-3 xl:sticky xl:top-6">
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             A+ Checklist
           </h2>

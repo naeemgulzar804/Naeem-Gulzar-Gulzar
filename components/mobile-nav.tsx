@@ -104,7 +104,7 @@ export function MobileNav() {
               className={cn(
                 "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                active ? "text-profit" : "text-muted-foreground"
+                active ? "text-accent" : "text-muted-foreground"
               )}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
@@ -119,7 +119,7 @@ export function MobileNav() {
           className={cn(
             "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            moreOpen || moreActive ? "text-profit" : "text-muted-foreground"
+            moreOpen || moreActive ? "text-accent" : "text-muted-foreground"
           )}
         >
           <MoreHorizontal className="h-5 w-5" aria-hidden="true" />

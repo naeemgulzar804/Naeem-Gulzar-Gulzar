@@ -20,7 +20,7 @@ export function TradeTable({
   onOpenCharts?: (index: number) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
       <table className="w-full min-w-[860px] border-collapse text-sm">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead>
@@ -113,16 +113,16 @@ export function TradeTable({
                   {trade.grade}
                 </Badge>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-muted-foreground">
+              <td className="whitespace-nowrap px-4 py-3 tabular text-xs text-muted-foreground">
                 {trade.entryTime || (trade.entryPrice ? trade.entryPrice : "—")}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-muted-foreground">
+              <td className="whitespace-nowrap px-4 py-3 text-right tabular text-muted-foreground">
                 {trade.rMultiple >= 0 ? "+" : ""}
                 {trade.rMultiple.toFixed(2)}R
               </td>
               <td
                 className={cn(
-                  "whitespace-nowrap px-4 py-3 text-right font-mono font-medium",
+                  "whitespace-nowrap px-4 py-3 text-right tabular font-medium",
                   trade.pnl >= 0 ? "text-profit" : "text-loss"
                 )}
               >
@@ -147,7 +147,7 @@ export function TradeTable({
                   <button
                     type="button"
                     onClick={() => onOpenCharts(i)}
-                    className="inline-flex items-center gap-1 rounded-md border border-ring/30 bg-ring/10 px-2 py-1 text-xs font-medium text-ring hover:bg-ring/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="inline-flex items-center gap-1 rounded-md border border-accent-border/30 bg-accent-soft px-2 py-1 text-xs font-medium text-accent hover:bg-ring/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Images className="h-3.5 w-3.5" aria-hidden="true" />
                     {chartCount(trade)}

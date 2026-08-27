@@ -130,7 +130,7 @@ export type PillTone = "profit" | "loss" | "accent" | "amber" | "neutral";
 const PILL_ACTIVE: Record<PillTone, string> = {
   profit: "border-profit/40 bg-profit/10 text-profit",
   loss: "border-loss/40 bg-loss/10 text-loss",
-  accent: "border-ring/40 bg-ring/10 text-ring",
+  accent: "border-accent-border/40 bg-accent-soft text-accent",
   amber: "border-amber-500/40 bg-amber-500/10 text-amber-500",
   neutral: "border-border bg-secondary text-foreground",
 };
@@ -230,9 +230,9 @@ export function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-4 rounded-xl border border-border bg-card p-5">
+    <section className="mb-4 rounded-2xl border border-border bg-card p-5">
       <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        <span className="flex h-5 w-5 items-center justify-center rounded border border-ring/30 bg-ring/10 text-[10px] font-extrabold text-ring">
+        <span className="flex h-5 w-5 items-center justify-center rounded border border-accent-border/30 bg-accent-soft text-[10px] font-extrabold text-accent">
           {step}
         </span>
         {title}

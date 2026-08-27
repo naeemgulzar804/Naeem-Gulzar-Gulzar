@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { Fira_Sans, Fira_Code } from "next/font/google";
+import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const firaSans = Fira_Sans({
-  variable: "--font-fira-sans",
+// Outfit carries the template's geometric headline voice; Inter handles the
+// dense UI text where Outfit's wide forms would cost horizontal room.
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 
-const firaCode = Fira_Code({
-  variable: "--font-fira-code",
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+// Numeric columns only — prices and R multiples need fixed-width digits.
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
@@ -27,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${firaSans.variable} ${firaCode.variable} h-full antialiased`}
+      className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full bg-background text-foreground">
         {children}

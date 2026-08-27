@@ -1,25 +1,54 @@
 @import "tailwindcss";
 
+/*
+ * Design language adapted from the SasMind SaaS template: a near-black canvas
+ * with cards one step lighter, hairline borders instead of hard outlines, a
+ * violet accent, and generous corner radii.
+ *
+ * Colour discipline: violet is the interface accent (actions, focus, active
+ * nav). Green and red are reserved exclusively for P&L semantics, so a number
+ * being green always means money, never "this is a button".
+ */
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #08080c;
+  --foreground: #f4f4f7;
 
-  --color-primary: #0f172a;
-  --color-on-primary: #ffffff;
-  --color-secondary: #1e293b;
-  --color-on-secondary: #ffffff;
+  /* Elevation ladder: canvas -> surface -> card -> raised */
+  --color-primary: #0d0d13;
+  --color-on-primary: #f4f4f7;
+  --color-secondary: #1a1a24;
+  --color-on-secondary: #f4f4f7;
 
-  --color-card: #0e1223;
-  --color-card-foreground: #f8fafc;
-  --color-muted: #1a1e2f;
-  --color-muted-foreground: #94a3b8;
-  --color-border: #334155;
+  --color-card: #13131b;
+  --color-card-foreground: #f4f4f7;
+  --color-muted: #1a1a24;
+  --color-muted-foreground: #8b8b9e;
+  --color-faint: #5c5c70;
 
-  --color-profit: #22c55e;
-  --color-profit-foreground: #0f172a;
-  --color-loss: #ef4444;
-  --color-loss-foreground: #000000;
-  --color-ring: #6366f1;
+  /* Hairlines, not outlines — the template separates with tone, not strokes. */
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Interface accent */
+  --color-accent: #7c5cfc;
+  --color-accent-hover: #6b48fb;
+  --color-on-accent: #ffffff;
+  --color-accent-soft: rgba(124, 92, 252, 0.12);
+  --color-accent-border: rgba(124, 92, 252, 0.28);
+  --color-ring: #7c5cfc;
+
+  /* P&L semantics only */
+  --color-profit: #34d399;
+  --color-profit-foreground: #052e21;
+  --color-loss: #f87171;
+  --color-loss-foreground: #2d0708;
+
+  /* Categorical chart palette — violet, amber, teal, orange */
+  --chart-1: #7c5cfc;
+  --chart-2: #fbbf24;
+  --chart-3: #2dd4bf;
+  --chart-4: #fb923c;
+  --chart-grid: rgba(255, 255, 255, 0.05);
 }
 
 @theme inline {
@@ -35,16 +64,32 @@
   --color-card-foreground: var(--color-card-foreground);
   --color-muted: var(--color-muted);
   --color-muted-foreground: var(--color-muted-foreground);
+  --color-faint: var(--color-faint);
   --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-on-accent: var(--color-on-accent);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent-border: var(--color-accent-border);
+  --color-ring: var(--color-ring);
 
   --color-profit: var(--color-profit);
   --color-profit-foreground: var(--color-profit-foreground);
   --color-loss: var(--color-loss);
   --color-loss-foreground: var(--color-loss-foreground);
-  --color-ring: var(--color-ring);
 
-  --font-sans: var(--font-fira-sans);
-  --font-mono: var(--font-fira-code);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-outfit);
+  --font-mono: var(--font-jetbrains);
+
+  --radius-card: 16px;
 }
 
 * {
@@ -55,13 +100,24 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display face carries the template's tight, geometric headline voice. */
+.font-display {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Tabular figures stop numeric columns from jittering as values change. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-ring) 35%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
 }
 
-/* Slim, low-contrast scrollbars fit the dense dashboard density */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -74,5 +130,5 @@ body {
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-muted-foreground);
+  background: var(--color-faint);
 }

@@ -63,7 +63,7 @@ export default async function PsychologyPage() {
           field="emotionDuring"
         />
 
-        <section className="rounded-xl border border-border bg-card p-4 sm:p-6">
+        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h2 className="mb-4 text-sm font-semibold text-foreground">
             Confidence level performance
           </h2>
@@ -97,7 +97,7 @@ function EmotionPanel({
   })).filter((r) => r.stat);
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4 sm:p-6">
+    <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
       <h2 className="mb-4 text-sm font-semibold text-foreground">{title}</h2>
       {rows.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">

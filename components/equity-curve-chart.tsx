@@ -31,7 +31,7 @@ function ChartTooltip({
       <p className="font-medium text-foreground">{formatDate(point.date)}</p>
       <p className="mt-1 text-muted-foreground">
         Balance:{" "}
-        <span className="font-mono text-foreground">
+        <span className="tabular text-foreground">
           {formatCurrency(point.balance)}
         </span>
       </p>
@@ -62,12 +62,12 @@ export function EquityCurveChart({ data }: { data: Point[] }) {
           <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="equityFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-profit)" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="var(--color-profit)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
-              stroke="var(--color-border)"
+              stroke="var(--chart-grid)"
               strokeDasharray="3 3"
               vertical={false}
             />
@@ -91,7 +91,7 @@ export function EquityCurveChart({ data }: { data: Point[] }) {
             <Area
               type="monotone"
               dataKey="balance"
-              stroke="var(--color-profit)"
+              stroke="var(--color-accent)"
               strokeWidth={2}
               fill="url(#equityFill)"
               isAnimationActive={false}

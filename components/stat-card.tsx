@@ -7,31 +7,41 @@ export function StatCard({
   icon: Icon,
   tone = "neutral",
   hint,
+  emphasis = false,
 }: {
   label: string;
   value: string;
   icon: ComponentType<{ className?: string }>;
   tone?: "profit" | "loss" | "neutral";
   hint?: string;
+  /** Promotes a headline metric so a grid of tiles isn't uniformly flat. */
+  emphasis?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <span
+    <div
+      className={cn(
+        "rounded-2xl border p-5",
+        emphasis
+          ? "border-accent-border bg-accent-soft"
+          : "border-border bg-card"
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <Icon
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-lg",
-            tone === "profit" && "bg-profit/15 text-profit",
-            tone === "loss" && "bg-loss/15 text-loss",
-            tone === "neutral" && "bg-secondary text-muted-foreground"
+            "h-3.5 w-3.5",
+            tone === "profit" && "text-profit",
+            tone === "loss" && "text-loss",
+            tone === "neutral" && "text-faint"
           )}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
+          aria-hidden="true"
+        />
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
       </div>
       <p
         className={cn(
-          "mt-3 font-mono text-2xl font-semibold tracking-tight",
+          "tabular mt-3 font-display font-semibold",
+          emphasis ? "text-[30px] leading-none" : "text-2xl leading-none",
           tone === "profit" && "text-profit",
           tone === "loss" && "text-loss",
           tone === "neutral" && "text-foreground"
@@ -39,7 +49,9 @@ export function StatCard({
       >
         {value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-2 text-xs text-faint">{hint}</p>
+      ) : null}
     </div>
   );
 }

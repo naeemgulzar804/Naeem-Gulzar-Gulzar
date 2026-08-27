@@ -20,7 +20,7 @@ export function AuthForm({
     <div className="flex min-h-svh flex-1 items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-profit/15 text-profit">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-on-accent">
             <TrendingUp className="h-5 w-5" aria-hidden="true" />
           </span>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -66,7 +66,7 @@ export function AuthForm({
           <button
             type="submit"
             disabled={pending}
-            className="flex min-h-11 w-full items-center justify-center rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground transition-colors hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
           </button>

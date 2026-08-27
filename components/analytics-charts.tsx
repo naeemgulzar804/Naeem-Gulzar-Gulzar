@@ -16,11 +16,22 @@ import { cn } from "@/lib/utils";
 
 const PROFIT = "var(--color-profit)";
 const LOSS = "var(--color-loss)";
-const NEUTRAL = "var(--color-muted-foreground)";
-const ACCENT = "var(--color-ring)";
+const NEUTRAL = "var(--color-faint)";
+const ACCENT = "var(--color-accent)";
 
-function rateColor(rate: number) {
-  return rate >= 60 ? PROFIT : rate >= 40 ? ACCENT : LOSS;
+// Shared tooltip chrome so every chart reads as one system.
+const TOOLTIP_STYLE = {
+  background: "var(--color-secondary)",
+  border: "1px solid var(--color-border-strong)",
+  borderRadius: 12,
+  fontSize: 12,
+} as const;
+
+// Bar length already encodes the rate, so colouring each bar by performance
+// adds noise without adding information — and it burns the green/red pair that
+// should mean money. Comparison charts stay one accent colour.
+function rateColor(rate: number | null) {
+  return rate === null ? NEUTRAL : ACCENT;
 }
 
 /** Win / Loss / Break-even split with the win rate called out in the middle. */
@@ -42,7 +53,7 @@ export function WinRateDonut({
   ].filter((d) => d.value > 0);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
       <h2 className="mb-4 text-sm font-semibold text-foreground">Win rate</h2>
       <p className="sr-only">
         {wins} wins, {losses} losses, {breakEven} break even — a{" "}
@@ -66,12 +77,7 @@ export function WinRateDonut({
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{
-                  background: "var(--color-primary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
+                contentStyle={TOOLTIP_STYLE}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -79,7 +85,7 @@ export function WinRateDonut({
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span
             className={cn(
-              "font-mono text-2xl font-bold",
+              "tabular text-2xl font-bold",
               rate >= 50 ? "text-profit" : "text-loss"
             )}
           >
@@ -98,7 +104,7 @@ export function WinRateDonut({
           ["B/E", breakEven, "text-muted-foreground"],
         ].map(([label, value, cls]) => (
           <div key={String(label)} className="text-center">
-            <p className={cn("font-mono text-lg font-bold", cls as string)}>
+            <p className={cn("tabular text-lg font-bold", cls as string)}>
               {value as number}
             </p>
             <p className="text-xs text-muted-foreground">{label as string}</p>
@@ -118,7 +124,7 @@ export function WinRateBar({
   stat: GroupWinRate | null;
 }) {
   const rate = stat?.rate ?? null;
-  const color = rate === null ? NEUTRAL : rateColor(rate);
+  const color = rateColor(rate);
   return (
     <div className="flex items-center gap-3 py-1.5">
       <span className="w-32 shrink-0 truncate text-xs text-muted-foreground">
@@ -131,7 +137,7 @@ export function WinRateBar({
         />
       </div>
       <span
-        className="w-12 shrink-0 text-right font-mono text-xs font-semibold"
+        className="w-12 shrink-0 text-right tabular text-xs font-semibold"
         style={{ color }}
       >
         {rate !== null ? `${rate}%` : "—"}
@@ -197,12 +203,7 @@ export function WinRateBarChart({
             />
             <Tooltip
               cursor={{ fill: "rgba(255,255,255,0.03)" }}
-              contentStyle={{
-                background: "var(--color-primary)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                fontSize: 12,
-              }}
+              contentStyle={TOOLTIP_STYLE}
               formatter={(value, _name, item) => [
                 `${value}% (${(item?.payload as { count?: number })?.count ?? 0} trades)`,
                 "Win rate",

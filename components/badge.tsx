@@ -12,11 +12,11 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
-        tone === "profit" && "bg-profit/15 text-profit",
-        tone === "loss" && "bg-loss/15 text-loss",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+        tone === "profit" && "bg-profit/12 text-profit",
+        tone === "loss" && "bg-loss/12 text-loss",
         tone === "neutral" && "bg-secondary text-muted-foreground",
-        tone === "accent" && "bg-ring/15 text-ring",
+        tone === "accent" && "bg-accent-soft text-accent",
         className
       )}
     >

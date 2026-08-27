@@ -238,7 +238,7 @@ export function ChartReviewPanel({
               {trade.confidence ? (
                 <p className="mt-3 text-xs text-muted-foreground">
                   Confidence:{" "}
-                  <span className="font-mono text-foreground">
+                  <span className="tabular text-foreground">
                     {trade.confidence}/10
                   </span>
                 </p>

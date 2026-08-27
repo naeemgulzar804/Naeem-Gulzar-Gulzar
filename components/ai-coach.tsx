@@ -198,7 +198,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <div
           role="group"
           aria-label="AI provider"
@@ -219,7 +219,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
                   "flex min-h-9 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   active
-                    ? "border-ring bg-ring/10 text-foreground"
+                    ? "border-accent-border bg-accent-soft text-foreground"
                     : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
               >
@@ -260,7 +260,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
             type="button"
             onClick={runAnalysis}
             disabled={loading}
-            className="flex min-h-10 items-center justify-center gap-2 rounded-lg bg-profit px-4 text-sm font-semibold text-profit-foreground hover:bg-profit/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Sparkles className="h-4 w-4" aria-hidden="true" />
             {loading ? "Analyzing…" : "Run analysis"}
@@ -279,13 +279,13 @@ export function AICoach({ trades }: { trades: Trade[] }) {
       ) : null}
 
       {loading ? (
-        <p role="status" className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <p role="status" className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Reviewing {trades.length} trades…
         </p>
       ) : null}
 
       {analysis ? (
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted-foreground">
             {analysis}
           </pre>

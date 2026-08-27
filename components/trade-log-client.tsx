@@ -83,11 +83,11 @@ export function TradeLogClient({ trades }: { trades: Trade[] }) {
           </span>
           <span className="text-muted-foreground">
             Win rate{" "}
-            <span className="font-mono text-foreground">{winRate.toFixed(0)}%</span>
+            <span className="tabular text-foreground">{winRate.toFixed(0)}%</span>
           </span>
           <span
             className={cn(
-              "font-mono font-medium",
+              "tabular font-medium",
               netPnl >= 0 ? "text-profit" : "text-loss"
             )}
           >

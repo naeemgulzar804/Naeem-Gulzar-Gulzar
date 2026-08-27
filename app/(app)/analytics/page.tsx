@@ -63,7 +63,7 @@ export default async function AnalyticsPage() {
 
       <div className="flex-1 space-y-4 px-4 py-6 sm:px-8">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
             <h2 className="mb-4 text-sm font-semibold text-foreground">
               Equity curve
             </h2>
@@ -180,7 +180,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-border bg-card p-4 sm:p-6">
+    <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
       <h2 className="mb-4 text-sm font-semibold text-foreground">{title}</h2>
       {children}
     </section>
