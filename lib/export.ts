@@ -32,6 +32,8 @@ const COLUMNS: [keyof Trade, string][] = [
   ["exitPrice", "Exit"],
   ["plannedRR", "Planned RR"],
   ["rMultiple", "Realized R"],
+  ["maePrice", "Worst price"],
+  ["mfePrice", "Best price"],
   ["size", "Size"],
   ["riskAmount", "Risk $"],
   ["riskPct", "Risk %"],

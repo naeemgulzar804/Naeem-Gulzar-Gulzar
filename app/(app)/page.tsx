@@ -15,22 +15,37 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { EquityCurveChart } from "@/components/equity-curve-chart";
+import { DailyPnlChart } from "@/components/daily-pnl-chart";
 import { WinRateDonut, WinRateBarChart } from "@/components/analytics-charts";
 import { TradeTable } from "@/components/trade-table";
 import { EmptyState } from "@/components/empty-state";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { RiskGuardrails } from "@/components/risk-guardrails";
 import { getTrades } from "@/lib/data/trades";
-import { getAccountSettings } from "@/lib/data/settings";
-import { getStats, getEquityCurve, groupWinRate } from "@/lib/analytics";
+import { getAccounts } from "@/lib/data/accounts";
+import { ViewFilters } from "@/components/view-filters";
+import { parseFilters, type SearchParams } from "@/lib/filters";
+import { getAccountSettings } from "@/lib/data/accounts";
+import {
+  getDailyPnl,
+  getEquityCurve,
+  getStats,
+  groupWinRate,
+} from "@/lib/analytics";
 import { getRiskReport } from "@/lib/risk";
 import { ENTRY_TIMES, WEEKDAYS } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const filters = parseFilters(await searchParams);
+  const accounts = await getAccounts();
   const [trades, settings] = await Promise.all([
-    getTrades(),
-    getAccountSettings(),
+    getTrades(filters),
+    getAccountSettings(filters.accountId),
   ]);
 
   if (trades.length === 0) {
@@ -39,7 +54,8 @@ export default async function DashboardPage() {
         <PageHeader
           title="Dashboard"
           description="Your trading performance at a glance."
-        />
+        actions={<ViewFilters accounts={accounts} />}
+      />
         <div className="page">
           <EmptyState
             icon={LineChart}
@@ -62,6 +78,7 @@ export default async function DashboardPage() {
 
   const stats = getStats(trades);
   const equityCurve = getEquityCurve(trades, settings.startingBalance);
+  const dailyPnl = getDailyPnl(trades);
   const today = new Date().toISOString().slice(0, 10);
   const risk = getRiskReport(trades, settings, today);
   const recentTrades = trades.slice(0, 8);
@@ -81,6 +98,7 @@ export default async function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description="Your trading performance at a glance."
+      actions={<ViewFilters accounts={accounts} />}
       />
 
       <div className="page">
@@ -166,6 +184,8 @@ export default async function DashboardPage() {
           </div>
           <WinRateDonut wins={wins} losses={losses} breakEven={breakEven} />
         </div>
+
+        <DailyPnlChart data={dailyPnl} />
 
         <div className="grid-dense grid-cols-1 lg:grid-cols-2">
           <div className="card">

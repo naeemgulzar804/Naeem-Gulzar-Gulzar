@@ -25,7 +25,7 @@ import {
 } from "@/components/screenshot-uploader";
 import { saveTrade } from "@/lib/actions/trades";
 import { initialTradeFormState } from "@/lib/actions/state";
-import type { AccountSettings, Playbook, Trade } from "@/lib/types";
+import type { Account, AccountSettings, Playbook, Trade } from "@/lib/types";
 import {
   CONFLUENCES,
   EMOTIONS,
@@ -52,6 +52,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface FormState {
+  accountId: string;
   date: string;
   symbol: string;
   day: string;
@@ -74,6 +75,8 @@ interface FormState {
   stopLoss: string;
   takeProfit: string;
   exitPrice: string;
+  maePrice: string;
+  mfePrice: string;
   size: string;
   riskAmount: string;
   riskPct: string;
@@ -94,6 +97,7 @@ interface FormState {
 function initialForm(trade?: Trade): FormState {
   if (!trade) {
     return {
+      accountId: "",
       date: new Date().toISOString().slice(0, 10),
       symbol: "",
       day: "",
@@ -116,6 +120,8 @@ function initialForm(trade?: Trade): FormState {
       stopLoss: "",
       takeProfit: "",
       exitPrice: "",
+      maePrice: "",
+      mfePrice: "",
       size: "",
       riskAmount: "250",
       riskPct: "",
@@ -135,6 +141,7 @@ function initialForm(trade?: Trade): FormState {
   }
   const num = (n: number) => (n ? String(n) : "");
   return {
+    accountId: trade.accountId ?? "",
     date: trade.date,
     symbol: trade.symbol,
     day: trade.day,
@@ -159,6 +166,8 @@ function initialForm(trade?: Trade): FormState {
     stopLoss: num(trade.stopLoss),
     takeProfit: num(trade.takeProfit),
     exitPrice: num(trade.exitPrice),
+    maePrice: num(trade.maePrice),
+    mfePrice: num(trade.mfePrice),
     size: num(trade.size),
     riskAmount: num(trade.riskAmount),
     riskPct: num(trade.riskPct),
@@ -181,16 +190,24 @@ export function TradeForm({
   playbooks,
   trade,
   settings,
+  accounts,
 }: {
   playbooks: Playbook[];
   trade?: Trade;
   settings: AccountSettings;
+  accounts: Account[];
 }) {
   const [state, formAction, pending] = useActionState(
     saveTrade,
     initialTradeFormState
   );
-  const [form, setForm] = useState<FormState>(() => initialForm(trade));
+  const [form, setForm] = useState<FormState>(() => {
+    const f = initialForm(trade);
+    // A new trade lands on the first account unless it's told otherwise;
+    // with one account there is nothing to choose.
+    if (!f.accountId && accounts.length) f.accountId = accounts[0].id;
+    return f;
+  });
   const [shots, setShots] = useState<ScreenshotPaths>({
     daily: trade?.screenshotDailyPath ?? null,
     h4: trade?.screenshotH4Path ?? null,
@@ -232,6 +249,22 @@ export function TradeForm({
     const dir = form.side === "Short" ? -1 : 1;
     return ((x - e) * dir) / risk;
   }, [form.entryPrice, form.stopLoss, form.exitPrice, form.side]);
+
+  // Excursions in R, so the numbers mean something while you type prices.
+  const excursion = useMemo(() => {
+    const e = parseFloat(form.entryPrice);
+    const st = parseFloat(form.stopLoss);
+    const risk = Math.abs(e - st);
+    if (!e || !st || !(risk > 0)) return null;
+    const dir = form.side === "Short" ? -1 : 1;
+    const rOf = (p: number) => ((p - e) * dir) / risk;
+    const mae = parseFloat(form.maePrice);
+    const mfe = parseFloat(form.mfePrice);
+    return {
+      maeR: Number.isFinite(mae) && mae ? Math.min(0, rOf(mae)) : null,
+      mfeR: Number.isFinite(mfe) && mfe ? Math.max(0, rOf(mfe)) : null,
+    };
+  }, [form.entryPrice, form.stopLoss, form.maePrice, form.mfePrice, form.side]);
 
   const pnl = useMemo(() => {
     if (realizedR === null) return null;
@@ -314,6 +347,19 @@ export function TradeForm({
             <TextField label="Date" id="date" type="date" value={form.date} onChange={(v) => set("date", v)} />
             <SelectField label="Day" id="day" value={form.day} onChange={(v) => set("day", v)} options={WEEKDAYS} />
           </div>
+          {accounts.length > 1 ? (
+            <div className="mt-3">
+              <SelectField
+                label="Account"
+                id="accountId"
+                value={form.accountId}
+                onChange={(v) => set("accountId", v)}
+                options={accounts.map((a) => a.name)}
+                values={accounts.map((a) => a.id)}
+              />
+            </div>
+          ) : null}
+
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <SelectField label="Session" id="session" value={form.session} onChange={(v) => set("session", v)} options={SESSIONS} />
             <SelectField label="Timeframe" id="timeframe" value={form.timeframe} onChange={(v) => set("timeframe", v)} options={TIMEFRAMES} />
@@ -442,6 +488,43 @@ export function TradeForm({
             <TextField label="Risk Amount ($ = 1R)" id="riskAmount" type="number" step="any" value={form.riskAmount} onChange={(v) => set("riskAmount", v)} placeholder="250" />
             <TextField label="Risk %" id="riskPct" type="number" step="any" value={form.riskPct} onChange={(v) => set("riskPct", v)} placeholder="1" />
           </div>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <TextField label="Worst price while open" id="maePrice" type="number" step="any" value={form.maePrice} onChange={(v) => set("maePrice", v)} placeholder="1.08350" />
+            <Field label="Went against you" id="maeDisplay">
+              <output
+                id="maeDisplay"
+                className={cn(
+                  "flex min-h-10 items-center justify-center rounded-lg border px-3 figure text-sm font-bold",
+                  excursion?.maeR == null
+                    ? "border-border bg-card text-muted-foreground"
+                    : "border-loss/30 bg-loss/5 text-loss"
+                )}
+              >
+                {excursion?.maeR != null ? `${excursion.maeR.toFixed(2)}R` : "Auto"}
+              </output>
+            </Field>
+            <TextField label="Best price while open" id="mfePrice" type="number" step="any" value={form.mfePrice} onChange={(v) => set("mfePrice", v)} placeholder="1.09800" />
+            <Field label="Went your way" id="mfeDisplay">
+              <output
+                id="mfeDisplay"
+                className={cn(
+                  "flex min-h-10 items-center justify-center rounded-lg border px-3 figure text-sm font-bold",
+                  excursion?.mfeR == null
+                    ? "border-border bg-card text-muted-foreground"
+                    : "border-profit/30 bg-profit/5 text-profit"
+                )}
+              >
+                {excursion?.mfeR != null ? `+${excursion.mfeR.toFixed(2)}R` : "Auto"}
+              </output>
+            </Field>
+          </div>
+          <p className="mt-2 text-xs text-faint">
+            How far the trade went against you before it worked, and how far it
+            went your way before you closed. With a fixed 1:3 target these are
+            what tell you whether you are closing winners short or running a
+            stop that only just survives.
+          </p>
 
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <TextField label="Duration (minutes)" id="durationMinutes" type="number" value={form.durationMinutes} onChange={(v) => set("durationMinutes", v)} placeholder="90" />

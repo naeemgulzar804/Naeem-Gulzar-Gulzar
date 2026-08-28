@@ -45,6 +45,9 @@ type TradeRow = {
   stop_loss: number | null;
   take_profit: number | null;
   planned_rr: number | null;
+  mae_price: number | null;
+  mfe_price: number | null;
+  account_id: string | null;
   size: number | null;
   risk_amount: number | null;
   risk_pct: number | null;
@@ -103,6 +106,9 @@ type TradeInsert = {
   stop_loss?: number | null;
   take_profit?: number | null;
   planned_rr?: number | null;
+  mae_price?: number | null;
+  mfe_price?: number | null;
+  account_id?: string | null;
   size?: number | null;
   risk_amount?: number | null;
   risk_pct?: number | null;
@@ -186,6 +192,40 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["journal_entries"]["Insert"]
         >;
+        Relationships: [];
+      };
+      accounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          starting_balance: number;
+          daily_loss_limit: number | null;
+          max_drawdown: number | null;
+          profit_target: number | null;
+          max_losses_per_day: number;
+          risk_pct_aligned: number;
+          risk_pct_unaligned: number;
+          archived_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          name: string;
+          starting_balance?: number;
+          daily_loss_limit?: number | null;
+          max_drawdown?: number | null;
+          profit_target?: number | null;
+          max_losses_per_day?: number;
+          risk_pct_aligned?: number;
+          risk_pct_unaligned?: number;
+          archived_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["accounts"]["Insert"]>;
         Relationships: [];
       };
       account_settings: {

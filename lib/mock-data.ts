@@ -184,6 +184,7 @@ function generateTrades(): Trade[] {
       tradeIndex += 1;
       trades.push({
         id: `t-${tradeIndex}`,
+        accountId: null,
         date: isoDay,
         symbol,
         side,
@@ -215,6 +216,19 @@ function generateTrades(): Trade[] {
         stopLoss: Math.round(stopLoss * 100000) / 100000,
         takeProfit: Math.round(takeProfit * 100000) / 100000,
         plannedRR: 2,
+
+        // Excursions consistent with the outcome: a winner that ran past its
+        // close, a loser that was briefly onside. Both sit the correct side
+        // of entry for the trade's direction.
+        maePrice:
+          side === "long"
+            ? entryPrice - risk * (0.3 + rand() * 0.6)
+            : entryPrice + risk * (0.3 + rand() * 0.6),
+        mfePrice:
+          side === "long"
+            ? entryPrice + risk * (isWin ? rMultiple + rand() * 0.8 : rand() * 1.4)
+            : entryPrice - risk * (isWin ? rMultiple + rand() * 0.8 : rand() * 1.4),
+
         size: Math.round((0.5 + rand() * 1.5) * 10) / 10,
         riskAmount: RISK,
         riskPct: grade === "A+" && dailyAligned ? 1 : rand() < 0.75 ? 0.5 : 1,

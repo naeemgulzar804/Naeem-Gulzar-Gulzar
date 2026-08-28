@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { saveSettings } from "@/lib/actions/settings";
 import { initialSettingsFormState } from "@/lib/actions/state";
-import type { AccountSettings } from "@/lib/types";
+import type { Account } from "@/lib/types";
 
 const labelCls = "mb-1.5 block text-xs font-medium text-muted-foreground";
 const fieldCls =
@@ -12,6 +12,7 @@ const fieldCls =
 
 function NumField({
   id,
+  scope,
   label,
   hint,
   defaultValue,
@@ -19,6 +20,7 @@ function NumField({
   placeholder,
 }: {
   id: string;
+  scope: string;
   label: string;
   hint?: string;
   defaultValue: number | null;
@@ -27,11 +29,11 @@ function NumField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className={labelCls}>
+      <label htmlFor={`${id}-${scope}`} className={labelCls}>
         {label}
       </label>
       <input
-        id={id}
+        id={`${id}-${scope}`}
         name={id}
         type="number"
         step={step}
@@ -47,9 +49,11 @@ function NumField({
 }
 
 export function AccountSettingsForm({
-  settings,
+  account,
+  isNew = false,
 }: {
-  settings: AccountSettings;
+  account: Account;
+  isNew?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(
     saveSettings,
@@ -72,36 +76,57 @@ export function AccountSettingsForm({
       action={formAction}
       className="card"
     >
+      <input type="hidden" name="accountId" value={isNew ? "" : account.id} />
+
       <p className="mb-4 text-sm text-muted-foreground">
-        The equity curve starts from your balance, and the dashboard measures
+        The equity curve starts from this balance, and the dashboard measures
         how close you are to each limit. Leave a limit blank to not track it.
       </p>
 
+      <div className="mb-4">
+        <label htmlFor={`name-${account.id}`} className={labelCls}>
+          Account name
+        </label>
+        <input
+          id={`name-${account.id}`}
+          name="name"
+          type="text"
+          required
+          defaultValue={account.name}
+          placeholder="FTMO 100K"
+          className={fieldCls}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumField
+          scope={account.id}
           id="startingBalance"
           label="Account size"
-          defaultValue={settings.startingBalance}
+          defaultValue={account.startingBalance}
           placeholder="50000"
           hint="What the equity curve starts from."
         />
         <NumField
+          scope={account.id}
           id="dailyLossLimit"
           label="Daily loss limit ($)"
-          defaultValue={settings.dailyLossLimit}
+          defaultValue={account.dailyLossLimit}
           placeholder="Not tracked"
         />
         <NumField
+          scope={account.id}
           id="maxDrawdown"
           label="Max drawdown ($)"
-          defaultValue={settings.maxDrawdown}
+          defaultValue={account.maxDrawdown}
           placeholder="Not tracked"
           hint="Measured from your highest balance, not your starting one."
         />
         <NumField
+          scope={account.id}
           id="profitTarget"
           label="Profit target ($)"
-          defaultValue={settings.profitTarget}
+          defaultValue={account.profitTarget}
           placeholder="Not tracked"
         />
       </div>
@@ -111,21 +136,24 @@ export function AccountSettingsForm({
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <NumField
+          scope={account.id}
           id="riskPctAligned"
           label="Risk % — Daily aligned"
-          defaultValue={settings.riskPctAligned}
+          defaultValue={account.riskPctAligned}
           step="0.05"
         />
         <NumField
+          scope={account.id}
           id="riskPctUnaligned"
           label="Risk % — not aligned"
-          defaultValue={settings.riskPctUnaligned}
+          defaultValue={account.riskPctUnaligned}
           step="0.05"
         />
         <NumField
+          scope={account.id}
           id="maxLossesPerDay"
           label="Stop after N losses"
-          defaultValue={settings.maxLossesPerDay}
+          defaultValue={account.maxLossesPerDay}
           step="1"
         />
       </div>
@@ -146,7 +174,7 @@ export function AccountSettingsForm({
           disabled={pending}
           className="flex min-h-10 items-center rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? "Saving…" : "Save settings"}
+          {pending ? "Saving…" : isNew ? "Add account" : "Save account"}
         </button>
         {justSaved ? (
           <span

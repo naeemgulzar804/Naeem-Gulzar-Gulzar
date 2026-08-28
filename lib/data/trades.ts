@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import type { ViewFilters } from "@/lib/filters";
 import type {
   EntryExecution,
   SmtPair,
@@ -33,6 +34,7 @@ function mapTrade(row: TradeRow): Trade {
     marketCondition: row.market_condition ?? "",
     h4Candle: row.h4_candle ?? "",
     liquidityPurge: row.liquidity_purge,
+    accountId: row.account_id,
     entryModel: row.entry_model ?? "",
     entryTime: row.entry_time ?? "",
 
@@ -47,6 +49,8 @@ function mapTrade(row: TradeRow): Trade {
     stopLoss: row.stop_loss ?? 0,
     takeProfit: row.take_profit ?? 0,
     plannedRR: row.planned_rr ?? 0,
+    maePrice: row.mae_price ?? 0,
+    mfePrice: row.mfe_price ?? 0,
     size: row.size ?? 0,
     riskAmount: row.risk_amount ?? 0,
     riskPct: row.risk_pct ?? 0,
@@ -75,11 +79,15 @@ function mapTrade(row: TradeRow): Trade {
   };
 }
 
-export async function getTrades(): Promise<Trade[]> {
+export async function getTrades(filters?: ViewFilters): Promise<Trade[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("trades")
-    .select("*")
+  let query = supabase.from("trades").select("*");
+
+  if (filters?.accountId) query = query.eq("account_id", filters.accountId);
+  if (filters?.from) query = query.gte("date", filters.from);
+  if (filters?.to) query = query.lte("date", filters.to);
+
+  const { data, error } = await query
     .order("date", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -106,6 +114,7 @@ export interface TradeInput {
   playbook: string;
   grade: TradeGrade;
   result: TradeResult;
+  accountId: string | null;
 
   session: string;
   timeframe: string;
@@ -127,6 +136,8 @@ export interface TradeInput {
   stopLoss: number;
   takeProfit: number;
   plannedRR: number;
+  maePrice: number;
+  mfePrice: number;
   size: number;
   riskAmount: number;
   riskPct: number;
@@ -160,6 +171,7 @@ function toRow(input: TradeInput) {
     playbook: input.playbook || null,
     grade: input.grade,
     result: input.result,
+    account_id: input.accountId,
 
     session: input.session || null,
     timeframe: input.timeframe || null,
@@ -181,6 +193,8 @@ function toRow(input: TradeInput) {
     stop_loss: input.stopLoss || null,
     take_profit: input.takeProfit || null,
     planned_rr: input.plannedRR || null,
+    mae_price: input.maePrice || null,
+    mfe_price: input.mfePrice || null,
     size: input.size || null,
     risk_amount: input.riskAmount || null,
     risk_pct: input.riskPct || null,

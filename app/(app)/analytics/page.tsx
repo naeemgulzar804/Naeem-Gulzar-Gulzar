@@ -10,11 +10,16 @@ import {
 import { EquityCurveChart } from "@/components/equity-curve-chart";
 import { ExpectancyPanel, RDistribution } from "@/components/expectancy-panel";
 import { DisciplinePanel } from "@/components/discipline-panel";
+import { ExcursionPanel } from "@/components/excursion-panel";
 import { getTrades } from "@/lib/data/trades";
-import { getAccountSettings } from "@/lib/data/settings";
+import { getAccounts } from "@/lib/data/accounts";
+import { ViewFilters } from "@/components/view-filters";
+import { parseFilters, type SearchParams } from "@/lib/filters";
+import { getAccountSettings } from "@/lib/data/accounts";
 import {
   confluenceWinRate,
   getEquityCurve,
+  getExcursionReport,
   getExpectancy,
   getRDistribution,
   groupWinRate,
@@ -32,10 +37,16 @@ import {
 
 export const metadata = { title: "Analytics — TradeLog" };
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const filters = parseFilters(await searchParams);
+  const accounts = await getAccounts();
   const [trades, settings] = await Promise.all([
-    getTrades(),
-    getAccountSettings(),
+    getTrades(filters),
+    getAccountSettings(filters.accountId),
   ]);
 
   if (trades.length === 0) {
@@ -44,7 +55,8 @@ export default async function AnalyticsPage() {
         <PageHeader
           title="Analytics"
           description="Discover patterns in your performance."
-        />
+        actions={<ViewFilters accounts={accounts} />}
+      />
         <div className="page">
           <EmptyState
             icon={BarChart3}
@@ -65,12 +77,14 @@ export default async function AnalyticsPage() {
   const expectancy = getExpectancy(trades);
   const rBuckets = getRDistribution(trades);
   const discipline = getDisciplineRates(trades, settings);
+  const excursions = getExcursionReport(trades);
 
   return (
     <>
       <PageHeader
         title="Analytics"
         description="Discover patterns in your performance."
+      actions={<ViewFilters accounts={accounts} />}
       />
 
       <div className="page">
@@ -90,6 +104,7 @@ export default async function AnalyticsPage() {
           {expectancy ? <ExpectancyPanel expectancy={expectancy} /> : null}
           <RDistribution buckets={rBuckets} />
           <DisciplinePanel rates={discipline} />
+          <ExcursionPanel report={excursions} />
         </div>
 
         <div className="grid-dense grid-cols-1 lg:grid-cols-2">

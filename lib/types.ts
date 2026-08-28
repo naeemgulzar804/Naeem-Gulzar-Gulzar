@@ -118,6 +118,8 @@ export const EMOTIONS = [
 
 export interface Trade {
   id: string;
+  /** Null on trades logged before accounts existed. */
+  accountId: string | null;
   date: string; // ISO date, entry day
   symbol: string;
   side: TradeSide;
@@ -150,6 +152,15 @@ export interface Trade {
   stopLoss: number;
   takeProfit: number;
   plannedRR: number;
+
+  /**
+   * Worst and best price the trade reached while open (MAE / MFE). Stored as
+   * prices because that is what you read off a chart; R is derived. Zero
+   * means not recorded — the same convention the other price fields use.
+   */
+  maePrice: number;
+  mfePrice: number;
+
   size: number; // lots
   riskAmount: number; // $ risked (1R)
   riskPct: number;
@@ -215,6 +226,11 @@ export interface Stats {
   worstDay: DailyPnl | null;
   totalTrades: number;
   currentStreak: { type: "win" | "loss"; count: number };
+}
+
+export interface Account extends AccountSettings {
+  id: string;
+  name: string;
 }
 
 export interface AccountSettings {

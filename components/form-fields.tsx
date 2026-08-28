@@ -68,6 +68,7 @@ export function SelectField({
   value,
   onChange,
   options,
+  values,
   placeholder = "Select…",
 }: {
   label: string;
@@ -75,6 +76,8 @@ export function SelectField({
   value: string;
   onChange: (value: string) => void;
   options: readonly string[];
+  /** Submitted values, when they differ from the visible labels. */
+  values?: readonly string[];
   placeholder?: string;
 }) {
   return (
@@ -86,8 +89,8 @@ export function SelectField({
         className={cn(inputClass, "cursor-pointer")}
       >
         <option value="">{placeholder}</option>
-        {options.map((o) => (
-          <option key={o} value={o}>
+        {options.map((o, i) => (
+          <option key={values?.[i] ?? o} value={values?.[i] ?? o}>
             {o}
           </option>
         ))}

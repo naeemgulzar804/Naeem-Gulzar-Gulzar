@@ -210,3 +210,82 @@ export function getRDistribution(trades: Trade[]): RBucket[] {
 
   return buckets;
 }
+
+/*
+ * ── Excursions (MAE / MFE) ────────────────────────────────────────────────
+ *
+ * How far a trade went against you before it worked, and how far in your
+ * favour before you closed it, both expressed in R against the trade's own
+ * risk. With a fixed 1:3 target these answer two questions realized R can't:
+ * whether winners are being closed short of the target, and whether the stop
+ * is surviving on luck.
+ *
+ * Direction matters and is the easy thing to get wrong: for a long, the
+ * adverse extreme is the low and the favourable extreme is the high; for a
+ * short it is the other way round. Both are stored as plain prices, so the
+ * sign only appears here.
+ */
+export interface Excursion {
+  /** Adverse excursion in R. Negative or zero. */
+  maeR: number;
+  /** Favourable excursion in R. Positive or zero. */
+  mfeR: number;
+}
+
+/**
+ * Null when the trade lacks what the calculation needs: an entry, a stop
+ * (which defines 1R), or the excursion prices themselves. A trade with no
+ * stop has no risk basis, so there is no R to express anything in.
+ */
+export function getExcursion(t: Trade): Excursion | null {
+  const risk = Math.abs(t.entryPrice - t.stopLoss);
+  if (!t.entryPrice || !t.stopLoss || risk <= 0) return null;
+  if (!t.maePrice && !t.mfePrice) return null;
+
+  const dir = t.side === "short" ? -1 : 1;
+  const rOf = (price: number) => ((price - t.entryPrice) * dir) / risk;
+
+  // A recorded extreme that sits the wrong side of entry means the trade
+  // never went that way at all, which is 0R rather than a negative MFE.
+  const maeR = t.maePrice ? Math.min(0, rOf(t.maePrice)) : 0;
+  const mfeR = t.mfePrice ? Math.max(0, rOf(t.mfePrice)) : 0;
+
+  return {
+    maeR: Math.round(maeR * 100) / 100,
+    mfeR: Math.round(mfeR * 100) / 100,
+  };
+}
+
+export interface ExcursionReport {
+  /** Trades with both a risk basis and at least one excursion recorded. */
+  recorded: number;
+  /** Winners: average peak versus average close, both in R. */
+  avgWinnerPeakR: number | null;
+  avgWinnerCloseR: number | null;
+  /** Winners: how close they came to the stop on the way. */
+  avgWinnerMaeR: number | null;
+  /** Losers that had been up at least 1R before turning into losses. */
+  givenBack: number;
+  losersWithData: number;
+}
+
+export function getExcursionReport(trades: Trade[]): ExcursionReport {
+  const withData = trades
+    .filter(isClosed)
+    .map((t) => ({ t, e: getExcursion(t) }))
+    .filter((x): x is { t: Trade; e: Excursion } => x.e !== null);
+
+  const winners = withData.filter((x) => isWin(x.t));
+  const losers = withData.filter((x) => isLoss(x.t));
+  const mean = (ns: number[]) =>
+    ns.length ? Math.round((ns.reduce((a, b) => a + b, 0) / ns.length) * 100) / 100 : null;
+
+  return {
+    recorded: withData.length,
+    avgWinnerPeakR: mean(winners.map((x) => x.e.mfeR)),
+    avgWinnerCloseR: mean(winners.map((x) => x.t.rMultiple)),
+    avgWinnerMaeR: mean(winners.map((x) => x.e.maeR)),
+    givenBack: losers.filter((x) => x.e.mfeR >= 1).length,
+    losersWithData: losers.length,
+  };
+}

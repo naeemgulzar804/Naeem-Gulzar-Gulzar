@@ -4,7 +4,9 @@ import { ExportTrades } from "@/components/export-trades";
 import { DeleteAllTrades } from "@/components/delete-all-trades";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { getTrades } from "@/lib/data/trades";
-import { getAccountSettings } from "@/lib/data/settings";
+import { getAccounts } from "@/lib/data/accounts";
+import { DEFAULT_ACCOUNT_SETTINGS } from "@/lib/types";
+import type { Account } from "@/lib/types";
 
 export const metadata = { title: "Settings — TradeLog" };
 
@@ -31,10 +33,14 @@ function Section({
 }
 
 export default async function SettingsPage() {
-  const [trades, settings] = await Promise.all([
-    getTrades(),
-    getAccountSettings(),
-  ]);
+  const [trades, accounts] = await Promise.all([getTrades(), getAccounts()]);
+
+  // A blank account for the "add another" form at the bottom of the list.
+  const blank: Account = {
+    ...DEFAULT_ACCOUNT_SETTINGS,
+    id: "new",
+    name: "",
+  };
 
   return (
     <>
@@ -44,8 +50,19 @@ export default async function SettingsPage() {
       />
 
       <div className="page">
-        <Section id="account-heading" title="Account & risk limits">
-          <AccountSettingsForm settings={settings} />
+        <Section id="account-heading" title="Accounts & risk limits">
+          <div className="flex flex-col gap-3">
+            {accounts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No accounts yet — add your first below.
+              </p>
+            ) : (
+              accounts.map((account) => (
+                <AccountSettingsForm key={account.id} account={account} />
+              ))
+            )}
+            <AccountSettingsForm account={blank} isNew />
+          </div>
         </Section>
 
         <Section id="export-heading" title="Backup">

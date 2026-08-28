@@ -3,14 +3,23 @@ import { PlaybookCard } from "@/components/playbook-card";
 import { JournalEntryCard } from "@/components/journal-entry-card";
 import { NewJournalEntryForm } from "@/components/new-journal-entry-form";
 import { getTrades } from "@/lib/data/trades";
+import { getAccounts } from "@/lib/data/accounts";
+import { ViewFilters } from "@/components/view-filters";
+import { parseFilters, type SearchParams } from "@/lib/filters";
 import { getPlaybooks } from "@/lib/data/playbooks";
 import { getJournalEntries } from "@/lib/data/journal";
 
 export const metadata = { title: "Journal & Playbooks — TradeLog" };
 
-export default async function JournalPage() {
+export default async function JournalPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const filters = parseFilters(await searchParams);
+  const accounts = await getAccounts();
   const [trades, playbooks, journalEntries] = await Promise.all([
-    getTrades(),
+    getTrades(filters),
     getPlaybooks(),
     getJournalEntries(),
   ]);
@@ -20,6 +29,7 @@ export default async function JournalPage() {
       <PageHeader
         title="Journal & Playbooks"
         description="Strategy rules and daily reflections, side by side."
+      actions={<ViewFilters accounts={accounts} />}
       />
       <div className="page">
         <section aria-labelledby="playbooks-heading">

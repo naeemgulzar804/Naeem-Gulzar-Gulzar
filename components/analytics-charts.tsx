@@ -216,7 +216,8 @@ export function WinRateBarChart({
 
   return (
     <>
-      <table className="sr-only">
+      <div className="sr-only">
+        <table>
         <caption>Win rate by category</caption>
         <thead>
           <tr>
@@ -235,6 +236,7 @@ export function WinRateBarChart({
           ))}
         </tbody>
       </table>
+      </div>
 
       <div style={{ height }} aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">

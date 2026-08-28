@@ -51,6 +51,7 @@ export async function saveTrade(
     playbook: str(formData, "playbook"),
     grade: (str(formData, "grade") || "B") as TradeGrade,
     result,
+    accountId: str(formData, "accountId") || null,
 
     session: str(formData, "session"),
     timeframe: str(formData, "timeframe"),
@@ -72,6 +73,8 @@ export async function saveTrade(
     stopLoss: num(formData, "stopLoss"),
     takeProfit: num(formData, "takeProfit"),
     plannedRR: num(formData, "plannedRR"),
+    maePrice: num(formData, "maePrice"),
+    mfePrice: num(formData, "mfePrice"),
     size: num(formData, "size"),
     riskAmount: num(formData, "riskAmount"),
     riskPct: num(formData, "riskPct"),

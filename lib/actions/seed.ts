@@ -44,6 +44,8 @@ export async function seedDemoData() {
     stop_loss: t.stopLoss,
     take_profit: t.takeProfit,
     planned_rr: t.plannedRR,
+    mae_price: t.maePrice,
+    mfe_price: t.mfePrice,
     size: t.size,
     risk_amount: t.riskAmount,
     risk_pct: t.riskPct,

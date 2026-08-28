@@ -4,14 +4,23 @@ import { EmptyState } from "@/components/empty-state";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { WinRateBar } from "@/components/analytics-charts";
 import { getTrades } from "@/lib/data/trades";
+import { getAccounts } from "@/lib/data/accounts";
+import { ViewFilters } from "@/components/view-filters";
+import { parseFilters, type SearchParams } from "@/lib/filters";
 import { groupWinRate } from "@/lib/analytics";
 import { EMOTIONS } from "@/lib/types";
 import type { Trade } from "@/lib/types";
 
 export const metadata = { title: "Psychology — TradeLog" };
 
-export default async function PsychologyPage() {
-  const trades = await getTrades();
+export default async function PsychologyPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const filters = parseFilters(await searchParams);
+  const accounts = await getAccounts();
+  const trades = await getTrades(filters);
   const hasEmotions = trades.some(
     (t) => t.emotionBefore || t.emotionDuring || t.emotionAfter
   );
@@ -22,7 +31,8 @@ export default async function PsychologyPage() {
         <PageHeader
           title="Psychology"
           description="How emotions affect your trading."
-        />
+        actions={<ViewFilters accounts={accounts} />}
+      />
         <div className="page">
           <EmptyState
             icon={Brain}
@@ -41,6 +51,7 @@ export default async function PsychologyPage() {
       <PageHeader
         title="Psychology"
         description="How emotions affect your trading."
+      actions={<ViewFilters accounts={accounts} />}
       />
 
       <div className="page">
