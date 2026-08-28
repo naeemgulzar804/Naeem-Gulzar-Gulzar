@@ -23,7 +23,7 @@ export default async function PatternsPage() {
         description="Edges and leaks found in your own trade history."
       />
 
-      <div className="flex-1 space-y-8 px-4 py-6 sm:px-8">
+      <div className="page">
         {report.insufficientData ? (
           <EmptyState
             icon={Radar}

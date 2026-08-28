@@ -24,7 +24,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border p-5",
+        "card",
         emphasis
           ? "border-accent-border bg-accent-soft"
           : "border-border bg-card"
@@ -32,17 +32,17 @@ export function StatCard({
     >
       <span
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-xl",
+          "flex h-7 w-7 items-center justify-center rounded-lg",
           emphasis ? "bg-accent text-on-accent" : "bg-secondary text-muted-foreground"
         )}
       >
-        <Icon className="h-4 w-4" aria-hidden="true" />
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       </span>
 
       <p
         className={cn(
-          "tabular mt-4 font-display font-bold leading-none tracking-tight",
-          emphasis ? "text-[34px]" : "text-[28px]",
+          "figure mt-2.5 font-bold leading-none",
+          emphasis ? "text-[20px] sm:text-[26px]" : "text-[18px] sm:text-[22px]",
           tone === "profit" && "text-profit",
           tone === "loss" && "text-loss",
           tone === "neutral" && "text-foreground"
@@ -51,10 +51,10 @@ export function StatCard({
         {value}
       </p>
 
-      <p className="mt-2.5 text-[13px] font-medium text-muted-foreground">
+      <p className="mt-1.5 text-xs font-medium text-muted-foreground">
         {label}
       </p>
-      {hint ? <p className="mt-1 text-xs text-faint">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-[11px] text-faint">{hint}</p> : null}
     </div>
   );
 }

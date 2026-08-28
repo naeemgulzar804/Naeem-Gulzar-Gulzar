@@ -31,7 +31,7 @@ export default async function TradeLogPage() {
           </Link>
         }
       />
-      <div className="flex-1 px-4 py-6 sm:px-8">
+      <div className="page">
         {trades.length === 0 ? (
           <EmptyState
             icon={ListOrdered}

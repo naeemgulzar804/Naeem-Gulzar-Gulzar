@@ -17,7 +17,7 @@ export default async function NewTradePage() {
         title="Log New Trade"
         description="Document your setup and execution."
       />
-      <div className="flex-1 px-4 py-6 sm:px-8">
+      <div className="page">
         <TradeForm playbooks={playbooks} settings={settings} />
       </div>
     </>

@@ -43,7 +43,7 @@ export function ReviewForm({
   return (
     <form
       action={formAction}
-      className="h-fit rounded-2xl border border-border bg-card p-4 sm:p-5"
+      className="h-fit card"
     >
       <input type="hidden" name="kind" value={kind} />
 
@@ -52,7 +52,7 @@ export function ReviewForm({
           <Icon className="h-4 w-4" aria-hidden="true" />
         </span>
         <div>
-          <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">
+          <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">
             {isPre ? "Pre-market plan" : "Post-market review"}
           </h2>
           <p className="text-xs text-faint">

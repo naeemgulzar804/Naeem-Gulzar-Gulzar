@@ -10,8 +10,8 @@ export function DisciplinePanel({ rates }: { rates: DisciplineRate[] }) {
   const measured = rates.filter((r) => r.rate !== null);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-1 font-display text-[15px] font-bold tracking-tight text-foreground">
+    <div className="card">
+      <h2 className="mb-1 font-display text-[13px] font-bold tracking-tight text-foreground">
         Rule adherence
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">
@@ -32,7 +32,7 @@ export function DisciplinePanel({ rates }: { rates: DisciplineRate[] }) {
                 <span className="text-sm text-foreground">{r.label}</span>
                 <span
                   className={cn(
-                    "tabular shrink-0 text-sm font-semibold",
+                    "figure shrink-0 text-sm font-semibold",
                     r.rate === null
                       ? "text-faint"
                       : r.rate >= 80

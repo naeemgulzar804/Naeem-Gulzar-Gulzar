@@ -28,7 +28,7 @@ export function JournalEntryCard({
     .filter((t): t is Trade => Boolean(t));
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-5">
+    <article className="card">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs text-muted-foreground">{formatDate(entry.date)}</p>

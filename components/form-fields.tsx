@@ -230,7 +230,7 @@ export function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mb-4 rounded-2xl border border-border bg-card p-5">
+    <section className="mb-4 card">
       <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
         <span className="flex h-5 w-5 items-center justify-center rounded border border-accent-border/30 bg-accent-soft text-[10px] font-extrabold text-accent">
           {step}

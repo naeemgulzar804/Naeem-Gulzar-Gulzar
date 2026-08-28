@@ -23,7 +23,7 @@ export default async function PsychologyPage() {
           title="Psychology"
           description="How emotions affect your trading."
         />
-        <div className="flex-1 px-4 py-6 sm:px-8">
+        <div className="page">
           <EmptyState
             icon={Brain}
             title="No psychology data yet"
@@ -43,8 +43,8 @@ export default async function PsychologyPage() {
         description="How emotions affect your trading."
       />
 
-      <div className="flex-1 space-y-4 px-4 py-6 sm:px-8">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="page">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-2">
           <EmotionPanel
             title="Emotion before trade"
             trades={trades}
@@ -63,8 +63,8 @@ export default async function PsychologyPage() {
           field="emotionDuring"
         />
 
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-          <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
+        <section className="card">
+          <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">
             Confidence level performance
           </h2>
           <div className="grid grid-cols-1 gap-x-10 sm:grid-cols-2">
@@ -97,8 +97,8 @@ function EmotionPanel({
   })).filter((r) => r.stat);
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">{title}</h2>
+    <section className="card">
+      <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">{title}</h2>
       {rows.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
           No trades recorded with this emotion yet.

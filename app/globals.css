@@ -178,15 +178,78 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * ── Density ───────────────────────────────────────────────────────────────
+ *
+ * This app is read the way a terminal is read — scanned for numbers before a
+ * session and after one — so it is laid out dense rather than airy. These
+ * six values are the whole density system; before they existed the same card
+ * class string was hand-copied 29 times and there was no single place to
+ * change how tight the app felt.
+ *
+ * Mobile relaxes the two that affect tapping: padding, and row height, since
+ * a 36px row is comfortable with a mouse and too small for a thumb.
+ */
+:root {
+  --pad-card: 12px;
+  --gap-grid: 8px;
+  --radius-card: 8px;
+  --row-h: 44px;
+  --sidebar-w: 224px;
+  --header-h: 56px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --pad-card: 14px;
+    --row-h: 36px;
+  }
+}
+
+@layer components {
+  /* The card cluster: one border, one radius, one padding, everywhere. */
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--pad-card);
+  }
+
+  /* The scrolling body of a page, below its header. */
+  .page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-grid);
+    padding: var(--gap-grid) 12px 24px;
+  }
+
+  @media (min-width: 640px) {
+    .page {
+      padding: var(--gap-grid) 16px 32px;
+    }
+  }
+
+  /* Any grid of cards. Sections that need their own columns set them; the
+     gap always comes from here so nothing drifts. */
+  .grid-dense {
+    display: grid;
+    gap: var(--gap-grid);
+  }
+
+  /* Figures. Mono keeps columns from jittering as values change, and the
+     slightly smaller size is what buys back the vertical space. */
+  .figure {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+}
+
 /* Display face carries the template's tight, geometric headline voice. */
 .font-display {
   font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   letter-spacing: -0.02em;
-}
-
-/* Tabular figures stop numeric columns from jittering as values change. */
-.tabular {
-  font-variant-numeric: tabular-nums;
 }
 
 /*

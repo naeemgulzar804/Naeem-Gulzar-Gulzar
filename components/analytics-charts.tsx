@@ -57,14 +57,14 @@ export function WinRateDonut({
   ].filter((d) => d.value > 0);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">Win rate</h2>
+    <div className="card">
+      <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">Win rate</h2>
       <p className="sr-only">
         {wins} wins, {losses} losses, {breakEven} break even — a{" "}
         {rate.toFixed(1)}% win rate.
       </p>
 
-      <div className="relative h-40" aria-hidden="true">
+      <div className="relative h-36" aria-hidden="true">
         {data.length ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -89,7 +89,7 @@ export function WinRateDonut({
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span
             className={cn(
-              "tabular text-2xl font-bold",
+              "figure text-2xl font-bold",
               rate >= 50 ? "text-profit" : "text-loss"
             )}
           >
@@ -108,7 +108,7 @@ export function WinRateDonut({
           ["B/E", breakEven, "text-muted-foreground"],
         ].map(([label, value, cls]) => (
           <div key={String(label)} className="text-center">
-            <p className={cn("tabular text-lg font-bold", cls as string)}>
+            <p className={cn("figure text-lg font-bold", cls as string)}>
               {value as number}
             </p>
             <p className="text-xs text-muted-foreground">{label as string}</p>
@@ -141,7 +141,7 @@ export function WinRateBar({
         />
       </div>
       <span
-        className="w-12 shrink-0 text-right tabular text-xs font-semibold"
+        className="w-12 shrink-0 text-right figure text-xs font-semibold"
         style={{ color }}
       >
         {rate !== null ? `${rate}%` : "—"}
@@ -198,7 +198,7 @@ function WrappedTick({
 
 export function WinRateBarChart({
   data,
-  height = 160,
+  height = 132,
 }: {
   data: { label: string; stat: GroupWinRate | null }[];
   height?: number;

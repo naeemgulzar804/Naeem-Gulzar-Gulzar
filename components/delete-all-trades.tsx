@@ -16,13 +16,13 @@ export function DeleteAllTrades({ tradeCount }: { tradeCount: number }) {
   const confirmed = typed.trim() === "DELETE";
 
   return (
-    <div className="rounded-2xl border border-loss/30 bg-loss/[0.04] p-5">
+    <div className="card border-loss/30 bg-loss/[0.04]">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-loss/12 text-loss">
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[15px] font-bold tracking-tight text-foreground">
+          <h3 className="font-display text-[13px] font-bold tracking-tight text-foreground">
             Delete all trades
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">

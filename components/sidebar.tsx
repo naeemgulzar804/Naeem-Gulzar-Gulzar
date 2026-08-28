@@ -45,8 +45,8 @@ export function Sidebar({ email }: { email: string }) {
   );
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-primary md:flex">
-      <div className="flex h-16 items-center gap-2.5 px-6">
+    <aside className="hidden w-[var(--sidebar-w)] shrink-0 flex-col border-r border-border bg-primary md:flex">
+      <div className="flex h-[var(--header-h)] items-center gap-2.5 px-4">
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-on-accent">
           <TrendingUp className="h-4 w-4" aria-hidden="true" />
         </span>
@@ -55,7 +55,7 @@ export function Sidebar({ email }: { email: string }) {
         </span>
       </div>
 
-      <nav className="flex-1 space-y-0.5 px-3 py-3" aria-label="Primary">
+      <nav className="flex-1 space-y-0.5 px-2 py-2" aria-label="Primary">
         {NAV_ITEMS.map((item) => {
           const active = current === item.href;
           const Icon = item.icon;
@@ -65,7 +65,7 @@ export function Sidebar({ email }: { email: string }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+                "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 active
                   ? "bg-accent-soft font-medium text-foreground"
@@ -82,9 +82,9 @@ export function Sidebar({ email }: { email: string }) {
         })}
       </nav>
 
-      <div className="space-y-2 p-3">
+      <div className="space-y-1.5 p-2">
         <ThemeToggle />
-        <div className="flex items-center gap-3 rounded-xl bg-card px-3 py-2.5">
+        <div className="flex items-center gap-2.5 rounded-lg bg-card px-2.5 py-2">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
             {initials}
           </span>
@@ -95,7 +95,7 @@ export function Sidebar({ email }: { email: string }) {
             <button
               type="submit"
               aria-label="Sign out"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-faint hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-faint hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:h-8 lg:w-8"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
             </button>

@@ -21,11 +21,11 @@ export default async function JournalPage() {
         title="Journal & Playbooks"
         description="Strategy rules and daily reflections, side by side."
       />
-      <div className="flex-1 space-y-10 px-4 py-6 sm:px-8">
+      <div className="page">
         <section aria-labelledby="playbooks-heading">
           <h2
             id="playbooks-heading"
-            className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground"
+            className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground"
           >
             Playbooks
           </h2>
@@ -34,7 +34,7 @@ export default async function JournalPage() {
               No playbooks yet.
             </p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid-dense grid-cols-1 lg:grid-cols-2">
               {playbooks.map((playbook) => (
                 <PlaybookCard
                   key={playbook.id}
@@ -48,7 +48,7 @@ export default async function JournalPage() {
 
         <section aria-labelledby="journal-heading">
           <div className="mb-4 flex items-center justify-between">
-            <h2 id="journal-heading" className="font-display text-[15px] font-bold tracking-tight text-foreground">
+            <h2 id="journal-heading" className="font-display text-[13px] font-bold tracking-tight text-foreground">
               Daily journal
             </h2>
           </div>

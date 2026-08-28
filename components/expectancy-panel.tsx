@@ -13,8 +13,8 @@ export function ExpectancyPanel({ expectancy }: { expectancy: Expectancy }) {
   const positive = expectancy.perTrade >= 0;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-1 font-display text-[15px] font-bold tracking-tight text-foreground">
+    <div className="card">
+      <h2 className="mb-1 font-display text-[13px] font-bold tracking-tight text-foreground">
         Expectancy
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">
@@ -24,7 +24,7 @@ export function ExpectancyPanel({ expectancy }: { expectancy: Expectancy }) {
 
       <p
         className={cn(
-          "font-display text-[32px] font-bold leading-none tracking-tight tabular",
+          "figure text-[26px] font-bold leading-none",
           positive ? "text-profit" : "text-loss"
         )}
       >
@@ -37,19 +37,19 @@ export function ExpectancyPanel({ expectancy }: { expectancy: Expectancy }) {
       <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-border pt-4">
         <div>
           <dt className="text-xs text-muted-foreground">Win rate</dt>
-          <dd className="tabular mt-0.5 text-sm font-semibold text-foreground">
+          <dd className="figure mt-0.5 text-sm font-semibold text-foreground">
             {expectancy.winRate}%
           </dd>
         </div>
         <div>
           <dt className="text-xs text-muted-foreground">Avg win</dt>
-          <dd className="tabular mt-0.5 text-sm font-semibold text-profit">
+          <dd className="figure mt-0.5 text-sm font-semibold text-profit">
             {R(expectancy.avgWinR)}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-muted-foreground">Avg loss</dt>
-          <dd className="tabular mt-0.5 text-sm font-semibold text-loss">
+          <dd className="figure mt-0.5 text-sm font-semibold text-loss">
             {R(expectancy.avgLossR)}
           </dd>
         </div>
@@ -74,8 +74,8 @@ export function RDistribution({ buckets }: { buckets: RBucket[] }) {
   const total = buckets.reduce((s, b) => s + b.count, 0);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-1 font-display text-[15px] font-bold tracking-tight text-foreground">
+    <div className="card">
+      <h2 className="mb-1 font-display text-[13px] font-bold tracking-tight text-foreground">
         Where trades finish
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">
@@ -86,7 +86,7 @@ export function RDistribution({ buckets }: { buckets: RBucket[] }) {
       <ul className="space-y-2">
         {buckets.map((b) => (
           <li key={b.label} className="flex items-center gap-3">
-            <span className="tabular w-20 shrink-0 text-xs text-muted-foreground">
+            <span className="figure w-20 shrink-0 text-xs text-muted-foreground">
               {b.label}
             </span>
             <span className="h-5 flex-1 overflow-hidden rounded-md bg-secondary">
@@ -98,7 +98,7 @@ export function RDistribution({ buckets }: { buckets: RBucket[] }) {
                 style={{ width: `${(b.count / max) * 100}%` }}
               />
             </span>
-            <span className="tabular w-8 shrink-0 text-right text-xs font-semibold text-foreground">
+            <span className="figure w-8 shrink-0 text-right text-xs font-semibold text-foreground">
               {b.count}
             </span>
           </li>

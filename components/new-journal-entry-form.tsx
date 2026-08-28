@@ -50,10 +50,10 @@ export function NewJournalEntryForm({ trades }: { trades: Trade[] }) {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-3 rounded-2xl border border-border bg-card p-5"
+      className="space-y-3 card"
     >
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-[15px] font-bold tracking-tight text-foreground">New journal entry</h3>
+        <h3 className="font-display text-[13px] font-bold tracking-tight text-foreground">New journal entry</h3>
         <button
           type="button"
           onClick={() => setOpen(false)}

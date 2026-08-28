@@ -14,15 +14,15 @@ export function PatternTiers({ report }: { report: PatternReport }) {
 
   return (
     <>
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <div className="card">
         <p className="text-sm text-muted-foreground">
           Checked{" "}
-          <span className="tabular font-semibold text-foreground">
+          <span className="figure font-semibold text-foreground">
             {report.hypothesesTested}
           </span>{" "}
           different slices of your {report.closedCount} closed trades against
           your baseline win rate of{" "}
-          <span className="tabular font-semibold text-foreground">
+          <span className="figure font-semibold text-foreground">
             {report.baselineRate}%
           </span>
           . A group has to hold at least {MIN_SAMPLE} trades and sit at least{" "}
@@ -51,7 +51,7 @@ export function PatternTiers({ report }: { report: PatternReport }) {
         </div>
 
         {hasConfirmed ? (
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <div className="grid-dense grid-cols-1 xl:grid-cols-2">
             <PatternColumn
               title="What's working"
               icon={TrendingUp}
@@ -70,7 +70,7 @@ export function PatternTiers({ report }: { report: PatternReport }) {
             />
           </div>
         ) : (
-          <p className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground sm:p-6">
+          <p className="card border-dashed text-sm text-muted-foreground">
             Nothing confirmed yet. That is the normal result at{" "}
             {report.closedCount} trades — proving an edge past this many
             comparisons usually takes a few hundred. Anything suggestive is
@@ -100,7 +100,7 @@ export function PatternTiers({ report }: { report: PatternReport }) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <div className="grid-dense grid-cols-1 xl:grid-cols-2">
             <PatternColumn
               title="Possible edges"
               icon={TrendingUp}
@@ -150,7 +150,7 @@ function PatternColumn({
     <section aria-labelledby={headingId}>
       <h3
         id={headingId}
-        className="mb-3 flex items-center gap-2 font-display text-[15px] font-bold tracking-tight text-foreground"
+        className="mb-3 flex items-center gap-2 font-display text-[13px] font-bold tracking-tight text-foreground"
       >
         <Icon
           className={cn("h-4 w-4", isEdge ? "text-profit" : "text-loss")}
@@ -160,7 +160,7 @@ function PatternColumn({
       </h3>
 
       {patterns.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border p-6 text-sm text-muted-foreground">
+        <p className="card border-dashed text-sm text-muted-foreground">
           {emptyLabel}
         </p>
       ) : (
@@ -169,7 +169,7 @@ function PatternColumn({
             <li
               key={p.id}
               className={cn(
-                "rounded-2xl border p-4 sm:p-5",
+                "card",
                 provisional
                   ? "border-dashed border-border bg-card/50"
                   : "border-border bg-card"
@@ -186,7 +186,7 @@ function PatternColumn({
                 </div>
                 <span
                   className={cn(
-                    "tabular shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
+                    "figure shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
                     isEdge ? "bg-profit/12 text-profit" : "bg-loss/12 text-loss"
                   )}
                 >
@@ -208,7 +208,7 @@ function PatternColumn({
                     }}
                   />
                 </div>
-                <span className="tabular shrink-0 text-xs font-semibold text-foreground">
+                <span className="figure shrink-0 text-xs font-semibold text-foreground">
                   {p.rate}%
                 </span>
               </div>

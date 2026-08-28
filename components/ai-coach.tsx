@@ -211,7 +211,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="card">
         <div
           role="group"
           aria-label="AI provider"
@@ -292,13 +292,13 @@ export function AICoach({ trades }: { trades: Trade[] }) {
       ) : null}
 
       {loading ? (
-        <p role="status" className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <p role="status" className="card p-6 text-center text-sm text-muted-foreground">
           Reviewing {trades.length} trades…
         </p>
       ) : null}
 
       {analysis ? (
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="card">
           <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted-foreground">
             {analysis}
           </pre>
@@ -309,7 +309,7 @@ export function AICoach({ trades }: { trades: Trade[] }) {
             <Brain className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">
+            <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">
               AI strategy coach
             </h2>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">

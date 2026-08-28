@@ -21,7 +21,7 @@ export default async function CalendarPage() {
         title="Calendar"
         description="Daily P&L at a glance. Color and value both encode direction and size."
       />
-      <div className="flex-1 px-4 py-6 sm:px-8">
+      <div className="page">
         {trades.length === 0 ? (
           <EmptyState
             icon={CalendarDays}

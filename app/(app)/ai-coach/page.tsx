@@ -13,7 +13,7 @@ export default async function AICoachPage() {
         title="AI Coach"
         description="Personalized ICT/SMC analysis of your journal, powered by Claude."
       />
-      <div className="flex-1 px-4 py-6 sm:px-8">
+      <div className="page">
         <AICoach trades={trades} />
       </div>
     </>

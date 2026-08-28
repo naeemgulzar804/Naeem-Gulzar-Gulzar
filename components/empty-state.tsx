@@ -25,7 +25,7 @@ export function EmptyState({
         <Icon className="h-6 w-6" aria-hidden="true" />
       </span>
       <div>
-        <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">{title}</h2>
+        <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">{title}</h2>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
           {description}
         </p>

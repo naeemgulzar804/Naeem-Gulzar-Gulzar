@@ -15,10 +15,10 @@ export function PlaybookCard({
   const netPnl = trades.reduce((s, t) => s + t.pnl, 0);
 
   return (
-    <div className="flex flex-col rounded-2xl border border-border bg-card p-5">
+    <div className="flex flex-col card">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-display text-[15px] font-bold tracking-tight text-foreground">
+          <h3 className="font-display text-[13px] font-bold tracking-tight text-foreground">
             {playbook.name}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -51,7 +51,7 @@ export function PlaybookCard({
         <span className="text-muted-foreground">
           {trades.length} trade{trades.length === 1 ? "" : "s"} · {winRate.toFixed(0)}% win rate
         </span>
-        <span className={cn("tabular font-medium", netPnl >= 0 ? "text-profit" : "text-loss")}>
+        <span className={cn("figure font-medium", netPnl >= 0 ? "text-profit" : "text-loss")}>
           {netPnl >= 0 ? "+" : ""}
           {formatCurrency(netPnl)}
         </span>

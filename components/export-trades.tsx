@@ -29,13 +29,13 @@ export function ExportTrades({ trades }: { trades: Trade[] }) {
   const disabled = trades.length === 0;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+    <div className="card">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
           <Download className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-[15px] font-bold tracking-tight text-foreground">
+          <h3 className="font-display text-[13px] font-bold tracking-tight text-foreground">
             Export your trades
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">

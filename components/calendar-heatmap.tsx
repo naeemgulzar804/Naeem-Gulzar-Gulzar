@@ -94,7 +94,7 @@ export function CalendarHeatmap({
           </span>
           <span
             className={cn(
-              "tabular font-medium",
+              "figure font-medium",
               monthPnl >= 0 ? "text-profit" : "text-loss"
             )}
           >
@@ -142,7 +142,7 @@ export function CalendarHeatmap({
                 {cell.day}
               </span>
               {hasTrades ? (
-                <span className="mt-0.5 tabular leading-none">
+                <span className="mt-0.5 figure leading-none">
                   {formatCompactCurrency(entry!.pnl)}
                 </span>
               ) : null}

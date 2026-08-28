@@ -31,7 +31,7 @@ function ChartTooltip({
       <p className="font-medium text-foreground">{formatDate(point.date)}</p>
       <p className="mt-1 text-muted-foreground">
         Balance:{" "}
-        <span className="tabular text-foreground">
+        <span className="figure text-foreground">
           {formatCurrency(point.balance)}
         </span>
       </p>
@@ -57,7 +57,7 @@ export function EquityCurveChart({ data }: { data: Point[] }) {
         {changePct >= 0 ? "gain" : "loss"} of {Math.abs(changePct).toFixed(1)}%
         over the period.
       </p>
-      <div className="h-64 w-full" aria-hidden="true">
+      <div className="h-48 w-full sm:h-56" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <defs>

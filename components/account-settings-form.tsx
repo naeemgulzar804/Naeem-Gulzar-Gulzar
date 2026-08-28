@@ -70,7 +70,7 @@ export function AccountSettingsForm({
   return (
     <form
       action={formAction}
-      className="rounded-2xl border border-border bg-card p-4 sm:p-5"
+      className="card"
     >
       <p className="mb-4 text-sm text-muted-foreground">
         The equity curve starts from your balance, and the dashboard measures
@@ -106,7 +106,7 @@ export function AccountSettingsForm({
         />
       </div>
 
-      <h3 className="mb-3 mt-6 font-display text-[15px] font-bold tracking-tight text-foreground">
+      <h3 className="mb-3 mt-6 font-display text-[13px] font-bold tracking-tight text-foreground">
         Your rules
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

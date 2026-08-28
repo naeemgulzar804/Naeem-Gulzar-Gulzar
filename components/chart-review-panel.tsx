@@ -87,7 +87,7 @@ export function ChartReviewPanel({
       >
         <header className="border-b border-border p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Chart Review</h2>
+            <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">Chart Review</h2>
             <button
               type="button"
               onClick={onClose}
@@ -238,7 +238,7 @@ export function ChartReviewPanel({
               {trade.confidence ? (
                 <p className="mt-3 text-xs text-muted-foreground">
                   Confidence:{" "}
-                  <span className="tabular text-foreground">
+                  <span className="figure text-foreground">
                     {trade.confidence}/10
                   </span>
                 </p>

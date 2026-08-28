@@ -40,7 +40,7 @@ export default async function DashboardPage() {
           title="Dashboard"
           description="Your trading performance at a glance."
         />
-        <div className="flex-1 px-4 py-6 sm:px-8">
+        <div className="page">
           <EmptyState
             icon={LineChart}
             title="No trades yet"
@@ -83,10 +83,10 @@ export default async function DashboardPage() {
         description="Your trading performance at a glance."
       />
 
-      <div className="flex-1 space-y-6 px-4 py-6 sm:px-8">
+      <div className="page">
         <RiskGuardrails report={risk} />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid-dense grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Net P&L"
             value={formatCurrency(stats.netPnl)}
@@ -154,10 +154,10 @@ export default async function DashboardPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-3">
+          <div className="card lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Equity curve</h2>
+              <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">Equity curve</h2>
               <span className="text-xs text-muted-foreground">
                 Starting balance {formatCurrency(settings.startingBalance)}
               </span>
@@ -167,9 +167,9 @@ export default async function DashboardPage() {
           <WinRateDonut wins={wins} losses={losses} breakEven={breakEven} />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-            <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-2">
+          <div className="card">
+            <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">
               Win rate by day
             </h2>
             <WinRateBarChart
@@ -179,8 +179,8 @@ export default async function DashboardPage() {
               }))}
             />
           </div>
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-            <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
+          <div className="card">
+            <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">
               Entry time performance
             </h2>
             <WinRateBarChart
@@ -193,15 +193,15 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-            <h2 className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground">Averages</h2>
+          <div className="card">
+            <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">Averages</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
                 <dt className="flex items-center gap-2 text-muted-foreground">
                   <TrendingUp className="h-4 w-4 text-profit" aria-hidden="true" />
                   Avg win
                 </dt>
-                <dd className="tabular font-medium text-profit">
+                <dd className="figure font-medium text-profit">
                   {formatCurrency(stats.avgWin)}
                 </dd>
               </div>
@@ -210,15 +210,15 @@ export default async function DashboardPage() {
                   <TrendingDown className="h-4 w-4 text-loss" aria-hidden="true" />
                   Avg loss
                 </dt>
-                <dd className="tabular font-medium text-loss">
+                <dd className="figure font-medium text-loss">
                   -{formatCurrency(stats.avgLoss)}
                 </dd>
               </div>
             </dl>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-            <h2 className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground">
+          <div className="card">
+            <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">
               Best / worst day
             </h2>
             <dl className="space-y-3 text-sm">
@@ -226,7 +226,7 @@ export default async function DashboardPage() {
                 <dt className="text-muted-foreground">
                   {stats.bestDay ? stats.bestDay.date : "—"}
                 </dt>
-                <dd className="tabular font-medium text-profit">
+                <dd className="figure font-medium text-profit">
                   {stats.bestDay ? formatCurrency(stats.bestDay.pnl) : "—"}
                 </dd>
               </div>
@@ -234,7 +234,7 @@ export default async function DashboardPage() {
                 <dt className="text-muted-foreground">
                   {stats.worstDay ? stats.worstDay.date : "—"}
                 </dt>
-                <dd className="tabular font-medium text-loss">
+                <dd className="figure font-medium text-loss">
                   {stats.worstDay ? formatCurrency(stats.worstDay.pnl) : "—"}
                 </dd>
               </div>
@@ -244,7 +244,7 @@ export default async function DashboardPage() {
 
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-[15px] font-bold tracking-tight text-foreground">Recent trades</h2>
+            <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">Recent trades</h2>
             <Link
               href="/trades"
               className="rounded text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

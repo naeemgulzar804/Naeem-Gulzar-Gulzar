@@ -79,7 +79,7 @@ export function ThemeToggle() {
     <div
       role="group"
       aria-label="Colour theme"
-      className="flex items-center gap-0.5 rounded-xl bg-secondary p-1"
+      className="flex items-center gap-0.5 rounded-lg bg-secondary p-1"
     >
       {OPTIONS.map(({ value, label, icon: Icon }) => {
         const active = theme === value;
@@ -92,7 +92,7 @@ export function ThemeToggle() {
             aria-pressed={theme === null ? undefined : active}
             title={label}
             className={cn(
-              "flex h-7 flex-1 items-center justify-center rounded-lg",
+              "flex h-9 flex-1 items-center justify-center rounded-lg lg:h-7",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
                 ? "bg-card text-foreground shadow-sm"

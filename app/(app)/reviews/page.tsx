@@ -27,8 +27,8 @@ export default async function ReviewsPage() {
         description="Plan the session before it opens, review it once it closes."
       />
 
-      <div className="flex-1 space-y-8 px-4 py-6 sm:px-8">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="page">
+        <div className="grid-dense grid-cols-1 xl:grid-cols-2">
           <ReviewForm kind="pre" date={today} existing={preToday} />
           <ReviewForm kind="post" date={today} existing={postToday} />
         </div>
@@ -36,13 +36,13 @@ export default async function ReviewsPage() {
         <section aria-labelledby="history-heading">
           <h2
             id="history-heading"
-            className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground"
+            className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground"
           >
             Past reviews
           </h2>
 
           {past.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            <p className="card border-dashed p-6 text-center text-sm text-muted-foreground">
               Saved plans and reviews from other days will collect here.
             </p>
           ) : (
@@ -79,7 +79,7 @@ function ReviewCard({ review }: { review: MarketReview }) {
   const filled = rows.filter(([, v]) => v);
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-5">
+    <article className="card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-muted-foreground">

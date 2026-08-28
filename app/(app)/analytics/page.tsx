@@ -45,7 +45,7 @@ export default async function AnalyticsPage() {
           title="Analytics"
           description="Discover patterns in your performance."
         />
-        <div className="flex-1 px-4 py-6 sm:px-8">
+        <div className="page">
           <EmptyState
             icon={BarChart3}
             title="Nothing to analyze yet"
@@ -73,10 +73,10 @@ export default async function AnalyticsPage() {
         description="Discover patterns in your performance."
       />
 
-      <div className="flex-1 space-y-4 px-4 py-6 sm:px-8">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
-            <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">
+      <div className="page">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-3">
+          <div className="card lg:col-span-2">
+            <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">
               Equity curve
             </h2>
             <EquityCurveChart
@@ -86,13 +86,13 @@ export default async function AnalyticsPage() {
           <WinRateDonut wins={wins} losses={losses} breakEven={breakEven} />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-3">
           {expectancy ? <ExpectancyPanel expectancy={expectancy} /> : null}
           <RDistribution buckets={rBuckets} />
           <DisciplinePanel rates={discipline} />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-2">
           <Panel title="Win rate by day">
             <WinRateBarChart
               data={WEEKDAYS.map((d) => ({
@@ -111,7 +111,7 @@ export default async function AnalyticsPage() {
           </Panel>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid-dense grid-cols-1 lg:grid-cols-2">
           <Panel title="Setup quality">
             {SETUP_GRADES.map((g) => (
               <WinRateBar
@@ -200,8 +200,8 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-      <h2 className="mb-4 font-display text-[15px] font-bold tracking-tight text-foreground">{title}</h2>
+    <section className="card">
+      <h2 className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground">{title}</h2>
       {children}
     </section>
   );

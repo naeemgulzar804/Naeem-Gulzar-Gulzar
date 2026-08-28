@@ -21,7 +21,7 @@ function Section({
     <section aria-labelledby={id} className="max-w-3xl">
       <h2
         id={id}
-        className="mb-3 font-display text-[15px] font-bold tracking-tight text-foreground"
+        className="mb-3 font-display text-[13px] font-bold tracking-tight text-foreground"
       >
         {title}
       </h2>
@@ -43,7 +43,7 @@ export default async function SettingsPage() {
         description="Your account, your rules, and your data."
       />
 
-      <div className="flex-1 space-y-8 px-4 py-6 sm:px-8">
+      <div className="page">
         <Section id="account-heading" title="Account & risk limits">
           <AccountSettingsForm settings={settings} />
         </Section>
@@ -53,7 +53,7 @@ export default async function SettingsPage() {
         </Section>
 
         <Section id="data-heading" title="Sample data">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+          <div className="card">
             <p className="text-sm text-muted-foreground">
               Loads a set of realistic demo trades so you can see how the
               dashboard, analytics, and pattern detection behave with a full

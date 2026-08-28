@@ -27,7 +27,7 @@ export default async function EditTradePage({
         title="Edit Trade"
         description={`${trade.symbol} · ${trade.date}`}
       />
-      <div className="flex-1 px-4 py-6 sm:px-8">
+      <div className="page">
         <TradeForm playbooks={playbooks} trade={trade} settings={settings} />
       </div>
     </>

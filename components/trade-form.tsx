@@ -429,7 +429,7 @@ export function TradeForm({
             <Field label="Planned R:R" id="plannedRRDisplay">
               <output
                 id="plannedRRDisplay"
-                className="flex min-h-10 items-center justify-center rounded-lg border border-accent-border/30 bg-ring/5 px-3 tabular text-sm font-bold text-accent"
+                className="flex min-h-10 items-center justify-center rounded-lg border border-accent-border/30 bg-ring/5 px-3 figure text-sm font-bold text-accent"
               >
                 {plannedRR !== null ? `1 : ${plannedRR.toFixed(2)}` : "Auto"}
               </output>
@@ -449,7 +449,7 @@ export function TradeForm({
               <output
                 id="realizedRDisplay"
                 className={cn(
-                  "flex min-h-10 items-center justify-center rounded-lg border px-3 tabular text-sm font-bold",
+                  "flex min-h-10 items-center justify-center rounded-lg border px-3 figure text-sm font-bold",
                   realizedR === null
                     ? "border-border bg-card text-muted-foreground"
                     : realizedR >= 0
@@ -466,7 +466,7 @@ export function TradeForm({
               <output
                 id="pnlDisplay"
                 className={cn(
-                  "flex min-h-10 items-center justify-center rounded-lg border px-3 tabular text-sm font-bold",
+                  "flex min-h-10 items-center justify-center rounded-lg border px-3 figure text-sm font-bold",
                   pnl === null
                     ? "border-border bg-card text-muted-foreground"
                     : pnl >= 0
@@ -574,7 +574,7 @@ export function TradeForm({
       </div>
 
       <aside className="flex flex-col gap-3 xl:sticky xl:top-6">
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="card">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             A+ Criteria
           </h2>
@@ -648,7 +648,7 @@ export function TradeForm({
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="card">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             Execution
           </h2>

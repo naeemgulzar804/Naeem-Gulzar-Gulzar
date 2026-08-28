@@ -15,7 +15,7 @@ export function RiskGuardrails({ report }: { report: RiskReport }) {
   return (
     <section
       aria-labelledby="guardrails-heading"
-      className="rounded-2xl border border-border bg-card p-4 sm:p-6"
+      className="card"
     >
       <div className="mb-4 flex items-center gap-2">
         {anyBreached ? (
@@ -25,7 +25,7 @@ export function RiskGuardrails({ report }: { report: RiskReport }) {
         )}
         <h2
           id="guardrails-heading"
-          className="font-display text-[15px] font-bold tracking-tight text-foreground"
+          className="font-display text-[13px] font-bold tracking-tight text-foreground"
         >
           Account limits
         </h2>
@@ -51,7 +51,7 @@ export function RiskGuardrails({ report }: { report: RiskReport }) {
                 </span>
                 <span
                   className={cn(
-                    "tabular text-xs font-semibold",
+                    "figure text-xs font-semibold",
                     g.breached ? "text-loss" : "text-foreground"
                   )}
                 >
