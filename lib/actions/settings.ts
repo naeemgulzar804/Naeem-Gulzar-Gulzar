@@ -5,6 +5,7 @@ import { archiveAccount, saveAccount } from "@/lib/data/accounts";
 import type { SettingsFormState } from "@/lib/actions/state";
 import type { DrawdownBasis } from "@/lib/types";
 import type { PropPhase } from "@/lib/prop-framework";
+import { errorMessage } from "@/lib/errors";
 
 /** Reads a positive number, or null when the field is left blank. */
 function optionalPositive(fd: FormData, key: string): number | null {
@@ -82,7 +83,7 @@ export async function saveSettings(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to save account.",
+      error: errorMessage(err, "Failed to save account."),
       savedAt: null,
     };
   }

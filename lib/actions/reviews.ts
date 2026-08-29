@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { deleteReview, upsertReview } from "@/lib/data/reviews";
 import type { ReviewFormState } from "@/lib/actions/state";
 import type { ReviewKind } from "@/lib/types";
+import { errorMessage } from "@/lib/errors";
 
 function str(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -49,7 +50,7 @@ export async function saveReview(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to save.",
+      error: errorMessage(err, "Failed to save."),
       savedAt: null,
     };
   }

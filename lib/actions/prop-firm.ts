@@ -9,6 +9,7 @@ import {
 import { archiveAccount } from "@/lib/data/accounts";
 import type { PropEventKind } from "@/lib/types";
 import type { PropFirmActionState } from "@/lib/actions/state";
+import { errorMessage } from "@/lib/errors";
 
 const KINDS: PropEventKind[] = ["payout", "cut", "purchase", "promotion"];
 
@@ -60,7 +61,7 @@ export async function logPropEvent(
     }
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to record the event.",
+      error: errorMessage(err, "Failed to record the event."),
       savedAt: null,
     };
   }
@@ -93,7 +94,7 @@ export async function promoteAccountAction(
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to promote the account.",
+      error: errorMessage(err, "Failed to promote the account."),
       savedAt: null,
     };
   }

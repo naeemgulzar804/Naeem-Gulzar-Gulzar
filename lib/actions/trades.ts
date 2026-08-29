@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createTrade, deleteTrade, updateTrade, type TradeInput } from "@/lib/data/trades";
 import type { TradeFormState } from "@/lib/actions/state";
+import { errorMessage } from "@/lib/errors";
 import type {
   EntryExecution,
   SmtPair,
@@ -104,7 +105,7 @@ export async function saveTrade(
     if (id) await updateTrade(id, input);
     else await createTrade(input);
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Failed to save trade." };
+    return { error: errorMessage(err, "Failed to save trade.") };
   }
 
   revalidatePath("/", "layout");
