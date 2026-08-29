@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { archiveAccount, saveAccount } from "@/lib/data/accounts";
 import type { SettingsFormState } from "@/lib/actions/state";
+import type { DrawdownBasis } from "@/lib/types";
+import type { PropPhase } from "@/lib/prop-framework";
+import { errorMessage } from "@/lib/errors";
 
 /** Reads a positive number, or null when the field is left blank. */
 function optionalPositive(fd: FormData, key: string): number | null {
@@ -37,6 +40,22 @@ export async function saveSettings(
     };
   }
 
+  // Framework placement. An unrecognised value falls back rather than
+  // failing the save: the tier only decides which triggers are applied.
+  const phaseRaw = String(formData.get("phase") ?? "").trim();
+  const phase: PropPhase =
+    phaseRaw === "phase1" || phaseRaw === "phase2" || phaseRaw === "funded"
+      ? phaseRaw
+      : "funded";
+
+  const basisRaw = String(formData.get("drawdownBasis") ?? "").trim();
+  const drawdownBasis: DrawdownBasis = basisRaw === "peak" ? "peak" : "initial";
+
+  const cycleStartRaw = String(formData.get("cycleStart") ?? "").trim();
+  if (cycleStartRaw && !/^\d{4}-\d{2}-\d{2}$/.test(cycleStartRaw)) {
+    return { error: "Cycle start must be a date.", savedAt: null };
+  }
+
   const maxLossesPerDay = Math.round(required(formData, "maxLossesPerDay", 2));
   if (maxLossesPerDay < 1 || maxLossesPerDay > 20) {
     return { error: "Daily loss cap must be between 1 and 20.", savedAt: null };
@@ -52,10 +71,19 @@ export async function saveSettings(
       maxLossesPerDay,
       riskPctAligned,
       riskPctUnaligned,
+      firm: String(formData.get("firm") ?? "").trim(),
+      phase,
+      programCost: optionalPositive(formData, "programCost"),
+      cycleStart: cycleStartRaw || null,
+      // Blank means "derive the balance from logged trades", which is the
+      // whole point of keeping the journal — so blank has to stay possible.
+      currentBalance: optionalPositive(formData, "currentBalance"),
+      drawdownBasis,
+      inFramework: formData.get("inFramework") !== null,
     });
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to save account.",
+      error: errorMessage(err, "Failed to save account."),
       savedAt: null,
     };
   }
@@ -63,6 +91,7 @@ export async function saveSettings(
   revalidatePath("/settings");
   revalidatePath("/");
   revalidatePath("/analytics");
+  revalidatePath("/prop-firm");
   return { error: null, savedAt: Date.now() };
 }
 
@@ -76,4 +105,5 @@ export async function archiveAccountAction(formData: FormData) {
   await archiveAccount(id);
   revalidatePath("/settings");
   revalidatePath("/");
+  revalidatePath("/prop-firm");
 }

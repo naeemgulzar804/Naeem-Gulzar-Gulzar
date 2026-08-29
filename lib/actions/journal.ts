@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createJournalEntry } from "@/lib/data/journal";
 import type { JournalFormState } from "@/lib/actions/state";
+import { errorMessage } from "@/lib/errors";
 
 export async function addJournalEntry(
   _prevState: JournalFormState,
@@ -28,7 +29,7 @@ export async function addJournalEntry(
   try {
     await createJournalEntry({ date, title, mood, content, linkedTradeIds });
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Failed to save entry." };
+    return { error: errorMessage(err, "Failed to save entry.") };
   }
 
   revalidatePath("/journal");

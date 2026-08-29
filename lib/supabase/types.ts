@@ -9,6 +9,9 @@ export type JournalMood = "confident" | "neutral" | "frustrated" | "disciplined"
 export type SmtQuality = "Clear" | "Borderline" | "Forced" | "None";
 export type SmtPair = "GBPUSD" | "DXY" | "Both" | "None";
 export type SweepQuality = "Clean" | "Borderline" | "None";
+export type PropPhase = "phase1" | "phase2" | "funded";
+export type DrawdownBasis = "initial" | "peak";
+export type PropEventKind = "payout" | "cut" | "purchase" | "promotion";
 export type EntryExecution =
   | "OB retest"
   | "Early — engulfing candle"
@@ -206,6 +209,13 @@ export interface Database {
           max_losses_per_day: number;
           risk_pct_aligned: number;
           risk_pct_unaligned: number;
+          firm: string | null;
+          phase: PropPhase;
+          program_cost: number | null;
+          cycle_start: string | null;
+          current_balance: number | null;
+          drawdown_basis: DrawdownBasis;
+          in_framework: boolean;
           archived_at: string | null;
           created_at: string;
           updated_at: string;
@@ -221,6 +231,13 @@ export interface Database {
           max_losses_per_day?: number;
           risk_pct_aligned?: number;
           risk_pct_unaligned?: number;
+          firm?: string | null;
+          phase?: PropPhase;
+          program_cost?: number | null;
+          cycle_start?: string | null;
+          current_balance?: number | null;
+          drawdown_basis?: DrawdownBasis;
+          in_framework?: boolean;
           archived_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -256,6 +273,32 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["account_settings"]["Insert"]
         >;
+        Relationships: [];
+      };
+      prop_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          account_id: string | null;
+          account_label: string | null;
+          kind: PropEventKind;
+          amount: number;
+          occurred_on: string;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          account_id?: string | null;
+          account_label?: string | null;
+          kind: PropEventKind;
+          amount?: number;
+          occurred_on?: string;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["prop_events"]["Insert"]>;
         Relationships: [];
       };
       market_reviews: {

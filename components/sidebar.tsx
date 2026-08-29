@@ -15,6 +15,7 @@ import {
   Plus,
   Radar,
   ClipboardList,
+  Layers,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/trades/new", label: "New Trade", icon: Plus },
   { href: "/trades", label: "Trade Log", icon: ListOrdered },
+  { href: "/prop-firm", label: "Prop Firm System", icon: Layers },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/psychology", label: "Psychology", icon: Brain },
