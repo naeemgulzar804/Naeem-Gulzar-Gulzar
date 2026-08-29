@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { saveSettings } from "@/lib/actions/settings";
 import { initialSettingsFormState } from "@/lib/actions/state";
 import type { Account } from "@/lib/types";
+import { PHASE_LABEL, TIER_BY_PHASE } from "@/lib/prop-framework";
 
 const labelCls = "mb-1.5 block text-xs font-medium text-muted-foreground";
 const fieldCls =
@@ -79,25 +80,130 @@ export function AccountSettingsForm({
       <input type="hidden" name="accountId" value={isNew ? "" : account.id} />
 
       <p className="mb-4 text-sm text-muted-foreground">
-        The equity curve starts from this balance, and the dashboard measures
-        how close you are to each limit. Leave a limit blank to not track it.
+        Where this account sits in the framework, what the firm allows, and
+        the rules you hold yourself to. Leave a limit blank to not track it.
       </p>
 
-      <div className="mb-4">
-        <label htmlFor={`name-${account.id}`} className={labelCls}>
-          Account name
-        </label>
-        <input
-          id={`name-${account.id}`}
-          name="name"
-          type="text"
-          required
-          defaultValue={account.name}
-          placeholder="FTMO 100K"
-          className={fieldCls}
-        />
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor={`name-${account.id}`} className={labelCls}>
+            Account name
+          </label>
+          <input
+            id={`name-${account.id}`}
+            name="name"
+            type="text"
+            required
+            defaultValue={account.name}
+            placeholder="FTMO 100K — A"
+            className={fieldCls}
+          />
+        </div>
+        <div>
+          <label htmlFor={`firm-${account.id}`} className={labelCls}>
+            Prop firm
+          </label>
+          <input
+            id={`firm-${account.id}`}
+            name="firm"
+            type="text"
+            defaultValue={account.firm}
+            placeholder="FTMO"
+            className={fieldCls}
+          />
+        </div>
       </div>
 
+      <h3 className="mb-3 mt-6 font-display text-[13px] font-bold tracking-tight text-foreground">
+        3-Tier Framework
+      </h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor={`phase-${account.id}`} className={labelCls}>
+            Phase
+          </label>
+          <select
+            id={`phase-${account.id}`}
+            name="phase"
+            defaultValue={account.phase}
+            className={fieldCls}
+          >
+            {(["funded", "phase2", "phase1"] as const).map((phase) => (
+              <option key={phase} value={phase}>
+                {PHASE_LABEL[phase]} — Tier {TIER_BY_PHASE[phase]}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-faint">
+            Sets the tier, and with it the cut trigger: −6% funded, −4% in
+            either evaluation phase.
+          </p>
+        </div>
+        <div>
+          <label htmlFor={`cycleStart-${account.id}`} className={labelCls}>
+            Cycle start date
+          </label>
+          <input
+            id={`cycleStart-${account.id}`}
+            name="cycleStart"
+            type="date"
+            defaultValue={account.cycleStart ?? ""}
+            className={fieldCls}
+          />
+          <p className="mt-1 text-[11px] text-faint">
+            Anchors the 4-weeks-on / 1-week-off cycle. Give every funded
+            account a different date — that is the staggering.
+          </p>
+        </div>
+        <NumField
+          scope={account.id}
+          id="currentBalance"
+          label="Current balance ($)"
+          defaultValue={account.currentBalance}
+          placeholder="From logged trades"
+          hint="Leave blank to track it from the trades you log here."
+        />
+        <NumField
+          scope={account.id}
+          id="programCost"
+          label="Evaluation fee ($)"
+          defaultValue={account.programCost}
+          placeholder="Not tracked"
+          hint="What a rebuy costs after a cut."
+        />
+        <div>
+          <label htmlFor={`drawdownBasis-${account.id}`} className={labelCls}>
+            Drawdown measured from
+          </label>
+          <select
+            id={`drawdownBasis-${account.id}`}
+            name="drawdownBasis"
+            defaultValue={account.drawdownBasis}
+            className={fieldCls}
+          >
+            <option value="initial">Starting balance (static)</option>
+            <option value="peak">Highest balance (trailing)</option>
+          </select>
+        </div>
+        <label className="flex items-start gap-2.5 self-end pb-1 text-sm text-foreground">
+          <input
+            type="checkbox"
+            name="inFramework"
+            defaultChecked={account.inFramework}
+            className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--color-accent)]"
+          />
+          <span>
+            Count in the tier ratios
+            <span className="mt-0.5 block text-[11px] text-faint">
+              Uncheck for a personal or live account.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <h3 className="mb-3 mt-6 font-display text-[13px] font-bold tracking-tight text-foreground">
+        Size &amp; firm limits
+      </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <NumField
           scope={account.id}

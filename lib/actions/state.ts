@@ -37,3 +37,13 @@ export const initialSettingsFormState: SettingsFormState = {
   error: null,
   savedAt: null,
 };
+
+export interface PropFirmActionState {
+  error: string | null;
+  savedAt: number | null;
+}
+
+export const initialPropFirmActionState: PropFirmActionState = {
+  error: null,
+  savedAt: null,
+};

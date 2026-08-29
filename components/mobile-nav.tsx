@@ -16,6 +16,7 @@ import {
   LogOut,
   Radar,
   ClipboardList,
+  Layers,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const PRIMARY = [
 ] as const;
 
 const SECONDARY = [
+  { href: "/prop-firm", label: "Prop Firm System", icon: Layers },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/psychology", label: "Psychology", icon: Brain },
   { href: "/journal", label: "Journal & Playbooks", icon: NotebookText },

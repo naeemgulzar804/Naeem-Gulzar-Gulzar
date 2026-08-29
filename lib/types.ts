@@ -1,3 +1,5 @@
+import type { PropPhase } from "@/lib/prop-framework";
+
 export type TradeSide = "long" | "short";
 export type TradeGrade = "A+" | "A" | "B" | "C";
 export type TradeResult = "Win" | "Loss" | "Break Even";
@@ -228,9 +230,47 @@ export interface Stats {
   currentStreak: { type: "win" | "loss"; count: number };
 }
 
+/** Static drawdown measures from the start; trailing from the high-water mark. */
+export type DrawdownBasis = "initial" | "peak";
+
 export interface Account extends AccountSettings {
   id: string;
   name: string;
+
+  // Where the account sits in the 3-Tier Framework. Tier is derived from
+  // phase (see lib/prop-framework.ts) rather than stored beside it.
+  firm: string;
+  phase: PropPhase;
+  /** What the evaluation cost — a cut is a known expense, so it has a price. */
+  programCost: number | null;
+  /** Anchor for the 4-weeks-on / 1-week-off cycle. */
+  cycleStart: string | null;
+  /**
+   * Manual balance override. Null means "derive it from the logged trades",
+   * which is the default and what lets the guidance stay current on its own.
+   */
+  currentBalance: number | null;
+  drawdownBasis: DrawdownBasis;
+  /** False for a personal or live account that sits outside the tier ratios. */
+  inFramework: boolean;
+}
+
+export type PropEventKind = "payout" | "cut" | "purchase" | "promotion";
+
+/**
+ * One entry in the payout / cut ledger. The framework's scale-up gates ask
+ * for streaks and recency ("3 consecutive payouts", "no cuts in 14 days"),
+ * which a running total cannot answer — so each one is recorded.
+ */
+export interface PropEvent {
+  id: string;
+  accountId: string | null;
+  /** Kept on the row so a deleted account's history still reads sensibly. */
+  accountLabel: string;
+  kind: PropEventKind;
+  amount: number;
+  occurredOn: string;
+  note: string;
 }
 
 export interface AccountSettings {
@@ -244,6 +284,17 @@ export interface AccountSettings {
   riskPctAligned: number;
   riskPctUnaligned: number;
 }
+
+/** Framework defaults for a brand-new account. */
+export const DEFAULT_ACCOUNT_FRAMEWORK = {
+  firm: "",
+  phase: "phase1" as PropPhase,
+  programCost: null,
+  cycleStart: null,
+  currentBalance: null,
+  drawdownBasis: "initial" as DrawdownBasis,
+  inFramework: true,
+};
 
 export const DEFAULT_ACCOUNT_SETTINGS: AccountSettings = {
   startingBalance: 50000,

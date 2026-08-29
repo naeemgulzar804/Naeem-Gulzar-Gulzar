@@ -5,7 +5,7 @@ import { DeleteAllTrades } from "@/components/delete-all-trades";
 import { SeedDemoButton } from "@/components/seed-demo-button";
 import { getTrades } from "@/lib/data/trades";
 import { getAccounts } from "@/lib/data/accounts";
-import { DEFAULT_ACCOUNT_SETTINGS } from "@/lib/types";
+import { DEFAULT_ACCOUNT_FRAMEWORK, DEFAULT_ACCOUNT_SETTINGS } from "@/lib/types";
 import type { Account } from "@/lib/types";
 
 export const metadata = { title: "Settings — TradeLog" };
@@ -38,6 +38,7 @@ export default async function SettingsPage() {
   // A blank account for the "add another" form at the bottom of the list.
   const blank: Account = {
     ...DEFAULT_ACCOUNT_SETTINGS,
+    ...DEFAULT_ACCOUNT_FRAMEWORK,
     id: "new",
     name: "",
   };
