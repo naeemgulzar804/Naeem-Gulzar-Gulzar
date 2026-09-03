@@ -1,19 +1,24 @@
 import Link from "next/link";
 import {
   Award,
-  DollarSign,
   Flame,
   Hash,
   LineChart,
   Percent,
   Plus,
-  Target,
   TrendingDown,
   TrendingUp,
-  Zap,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
+import { MetricTile } from "@/components/metric-tile";
+import {
+  DivergingBar,
+  GaugeArc,
+  RingMeter,
+} from "@/components/metric-visuals";
+import { ScoreRadar } from "@/components/score-radar";
+import { CalendarHeatmap } from "@/components/calendar-heatmap";
 import { EquityCurveChart } from "@/components/equity-curve-chart";
 import { DailyPnlChart } from "@/components/daily-pnl-chart";
 import { WinRateDonut, WinRateBarChart } from "@/components/analytics-charts";
@@ -33,6 +38,7 @@ import {
   groupWinRate,
 } from "@/lib/analytics";
 import { getRiskReport } from "@/lib/risk";
+import { getTradingScore } from "@/lib/score";
 import { ENTRY_TIMES, WEEKDAYS } from "@/lib/types";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
@@ -82,6 +88,12 @@ export default async function DashboardPage({
   const today = new Date().toISOString().slice(0, 10);
   const risk = getRiskReport(trades, settings, today);
   const recentTrades = trades.slice(0, 8);
+  const score = getTradingScore(trades, settings.startingBalance, stats);
+
+  // Open the calendar on the most recent month that actually has trades.
+  const latestMonth = dailyPnl.length
+    ? dailyPnl[dailyPnl.length - 1].date.slice(0, 7)
+    : today.slice(0, 7);
 
   const wins = trades.filter((t) => t.result === "Win").length;
   const losses = trades.filter((t) => t.result === "Loss").length;
@@ -104,29 +116,113 @@ export default async function DashboardPage({
       <div className="page">
         <RiskGuardrails report={risk} />
 
-        <div className="grid-dense grid-cols-2 lg:grid-cols-4">
-          <StatCard
+        {/*
+          The focal band. These five are what the app gets opened to check, so
+          each one carries a meter: the figure says how much, the meter says
+          whether that is healthy, without needing a benchmark in your head.
+        */}
+        <div className="grid-dense grid-cols-1 sm:grid-cols-2 xl:grid-cols-5">
+          <MetricTile
             label="Net P&L"
             value={formatCurrency(stats.netPnl)}
-            icon={DollarSign}
             tone={stats.netPnl >= 0 ? "profit" : "loss"}
             hint={`${stats.totalTrades} trades logged`}
-            emphasis
+            className={
+              stats.netPnl >= 0
+                ? "border-accent-border bg-accent-soft"
+                : undefined
+            }
           />
-          <StatCard
-            label="Win rate"
+
+          <MetricTile
+            label="Trade win %"
             value={formatPercent(stats.winRate)}
-            icon={Target}
-            tone="neutral"
-            hint={`${wins}W · ${losses}L${breakEven ? ` · ${breakEven} BE` : ""}`}
+            hint={
+              <span className="flex flex-wrap items-center gap-x-2">
+                <span className="text-profit">{wins}W</span>
+                {breakEven ? <span>{breakEven} BE</span> : null}
+                <span className="text-loss">{losses}L</span>
+              </span>
+            }
+            visual={
+              <GaugeArc
+                segments={[
+                  { value: wins, className: "stroke-profit", label: "Wins" },
+                  {
+                    value: breakEven,
+                    className: "stroke-accent",
+                    label: "Break even",
+                  },
+                  { value: losses, className: "stroke-loss", label: "Losses" },
+                ]}
+              />
+            }
           />
-          <StatCard
+
+          <MetricTile
+            label="Avg win / loss trade"
+            value={
+              stats.avgLoss > 0
+                ? (stats.avgWin / stats.avgLoss).toFixed(2)
+                : "—"
+            }
+            hint={
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-profit">
+                  {formatCurrency(stats.avgWin)}
+                </span>
+                <span className="text-loss">
+                  -{formatCurrency(stats.avgLoss)}
+                </span>
+              </span>
+            }
+            footer={<DivergingBar win={stats.avgWin} loss={stats.avgLoss} />}
+          />
+
+          <MetricTile
             label="Profit factor"
             value={stats.profitFactor.toFixed(2)}
-            icon={Zap}
             tone={stats.profitFactor >= 1.5 ? "profit" : "neutral"}
-            hint="Gross profit / gross loss"
+            hint="Target 2.00"
+            visual={
+              <RingMeter
+                value={stats.profitFactor}
+                target={2}
+                tone={stats.profitFactor >= 1.5 ? "profit" : "accent"}
+              />
+            }
           />
+
+          <MetricTile
+            label="Current streak"
+            value={String(stats.currentStreak.count || "—")}
+            tone={
+              stats.currentStreak.count
+                ? stats.currentStreak.type === "win"
+                  ? "profit"
+                  : "loss"
+                : "neutral"
+            }
+            hint={
+              stats.currentStreak.count
+                ? `${stats.currentStreak.type} streak`
+                : "No closed trades"
+            }
+            visual={
+              <Flame
+                className={
+                  stats.currentStreak.count &&
+                  stats.currentStreak.type === "win"
+                    ? "h-8 w-8 text-profit"
+                    : "h-8 w-8 text-faint"
+                }
+                aria-hidden="true"
+              />
+            }
+          />
+        </div>
+
+        <div className="grid-dense grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Avg R multiple"
             value={`${stats.avgR >= 0 ? "+" : ""}${stats.avgR.toFixed(2)}R`}
@@ -142,17 +238,6 @@ export default async function DashboardPage({
             hint={aPlus ? `${aPlus.count} A+ trades` : "No A+ trades yet"}
           />
           <StatCard
-            label="Current streak"
-            value={String(stats.currentStreak.count || "—")}
-            icon={Flame}
-            tone={stats.currentStreak.type === "win" ? "profit" : "loss"}
-            hint={
-              stats.currentStreak.count
-                ? `${stats.currentStreak.type} streak`
-                : "No closed trades"
-            }
-          />
-          <StatCard
             label="Best setup"
             value={bestSetup?.grade ?? "—"}
             icon={Hash}
@@ -164,28 +249,47 @@ export default async function DashboardPage({
             }
           />
           <StatCard
-            label="Total trades"
-            value={String(stats.totalTrades)}
-            icon={LineChart}
-            tone="neutral"
-            hint="All sessions"
+            label="Max drawdown"
+            value={formatCurrency(score.maxDrawdown)}
+            icon={TrendingDown}
+            tone={score.maxDrawdownPct > 10 ? "loss" : "neutral"}
+            hint={`${score.maxDrawdownPct.toFixed(1)}% of starting balance`}
           />
         </div>
 
-        <div className="grid-dense grid-cols-1 lg:grid-cols-3">
-          <div className="card lg:col-span-2">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">Equity curve</h2>
-              <span className="text-xs text-muted-foreground">
-                Starting balance {formatCurrency(settings.startingBalance)}
-              </span>
+        {/*
+          Curve and score stack in a narrow left rail against the calendar,
+          which gets the width. The month grid is the densest thing on the
+          page and the one a trader scans first for the shape of the month.
+        */}
+        <div className="grid-dense grid-cols-1 lg:grid-cols-3 lg:items-start">
+          <div className="grid-dense grid-cols-1 lg:col-span-1">
+            <div className="card">
+              <div className="mb-4 flex items-baseline justify-between gap-2">
+                <h2 className="font-display text-[13px] font-bold tracking-tight text-foreground">
+                  Equity curve
+                </h2>
+                <span className="text-[11px] text-faint">
+                  From {formatCurrency(settings.startingBalance)}
+                </span>
+              </div>
+              <EquityCurveChart data={equityCurve} />
             </div>
-            <EquityCurveChart data={equityCurve} />
+
+            <ScoreRadar score={score} />
+          </div>
+
+          <div className="lg:col-span-2">
+            <CalendarHeatmap dailyPnl={dailyPnl} initialMonth={latestMonth} />
+          </div>
+        </div>
+
+        <div className="grid-dense grid-cols-1 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <DailyPnlChart data={dailyPnl} />
           </div>
           <WinRateDonut wins={wins} losses={losses} breakEven={breakEven} />
         </div>
-
-        <DailyPnlChart data={dailyPnl} />
 
         <div className="grid-dense grid-cols-1 lg:grid-cols-2">
           <div className="card">
