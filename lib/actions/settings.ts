@@ -61,7 +61,7 @@ export async function saveSettings(
   }
 
   revalidatePath("/settings");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   revalidatePath("/analytics");
   return { error: null, savedAt: Date.now() };
 }
@@ -75,5 +75,5 @@ export async function archiveAccountAction(formData: FormData) {
   if (!id) return;
   await archiveAccount(id);
   revalidatePath("/settings");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
 }

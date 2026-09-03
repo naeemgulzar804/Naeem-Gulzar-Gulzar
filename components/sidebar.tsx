@@ -23,7 +23,7 @@ import { Wordmark } from "@/components/wordmark";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/trades/new", label: "New Trade", icon: Plus },
   { href: "/trades", label: "Trade Log", icon: ListOrdered },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },

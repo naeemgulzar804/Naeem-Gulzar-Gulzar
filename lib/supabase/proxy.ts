@@ -1,7 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth/callback"];
+/* Prefix-matched: everything below these is public. */
+const PUBLIC_PREFIXES = ["/login", "/signup", "/auth/callback"];
+
+/* Exact-matched. "/" cannot be a prefix — it would make every route public. */
+const PUBLIC_EXACT = ["/"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -33,9 +37,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isPublicPath = PUBLIC_PATHS.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
+  const { pathname } = request.nextUrl;
+  const isPublicPath =
+    PUBLIC_EXACT.includes(pathname) ||
+    PUBLIC_PREFIXES.some((path) => pathname.startsWith(path));
 
   if (!user && !isPublicPath) {
     const loginUrl = request.nextUrl.clone();
@@ -44,9 +49,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup")) {
+  if (user && (pathname === "/login" || pathname === "/signup")) {
     const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = "/";
+    homeUrl.pathname = "/dashboard";
     homeUrl.search = "";
     return NextResponse.redirect(homeUrl);
   }

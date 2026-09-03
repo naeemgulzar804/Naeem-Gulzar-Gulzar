@@ -24,7 +24,7 @@ import { logout } from "@/lib/auth/actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const PRIMARY = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/trades", label: "Trades", icon: ListOrdered },
   { href: "/trades/new", label: "Log", icon: Plus },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
