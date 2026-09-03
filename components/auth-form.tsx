@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
+import { Wordmark } from "@/components/wordmark";
 import type { AuthState } from "@/lib/auth/state";
 import { initialAuthState } from "@/lib/auth/state";
 
@@ -20,10 +20,8 @@ export function AuthForm({
     <div className="flex min-h-svh flex-1 items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-on-accent">
-            <TrendingUp className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <Wordmark markClassName="h-10 w-10" textClassName="text-xl" />
+          <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
             {isLogin ? "Sign in to TradeLog" : "Create your TradeLog account"}
           </h1>
           <p className="text-sm text-muted-foreground">
