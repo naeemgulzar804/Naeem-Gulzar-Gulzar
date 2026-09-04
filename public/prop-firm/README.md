@@ -8,7 +8,19 @@ from the trading journal** — it shares no database tables, no code, and no dat
 It is one self-contained HTML file with no build step and no dependencies.
 
 - **Locally:** open `public/prop-firm/index.html` in any browser. Bookmark it.
-- **Deployed:** it is served at `/prop-firm/` on whatever URL the site runs on.
+- **Deployed:** at `/prop-firm/index.html` on whatever URL the site runs on.
+
+  Use the full path including `index.html`. Next.js serves files from `public/`
+  by exact path and does not resolve a bare directory to its index, so
+  `/prop-firm/` may 404 while `/prop-firm/index.html` works. If you want the
+  short URL, add a redirect in `netlify.toml`:
+
+  ```toml
+  [[redirects]]
+    from = "/prop-firm"
+    to = "/prop-firm/index.html"
+    status = 200
+  ```
 
 Pick one and stay with it. Data is stored in the browser's `localStorage`, which is
 scoped to the location the page was opened from — opening it from a file path and from
