@@ -282,6 +282,7 @@
     <div class="btn-row" style="margin-bottom:20px;">
       <button class="btn btn-dark" onclick="openAccount()">+ Add account</button>
       <button class="btn btn-ghost" onclick="seedStart()">Seed my 2 × $25K evals</button>
+      <button class="btn btn-ghost" onclick="loadSample()">Load sample portfolio</button>
     </div>
 
     <h3 class="blk">Tier 1 — funded master accounts <span class="pill p1">income engine</span></h3>
@@ -418,7 +419,9 @@
     <div class="card">
       <div class="btn-row">
         <button class="btn btn-dark" onclick="exportData()">Export backup (.json)</button>
-        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Import backup</button>
+        <button class="btn btn-ghost" onclick="showBackup()">Show as text</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Import file</button>
+        <button class="btn btn-ghost" onclick="pasteImport()">Paste backup</button>
         <button class="btn btn-red" onclick="wipeAll()">Erase everything</button>
       </div>
       <input type="file" id="importFile" accept="application/json" hidden onchange="importData(event)">
@@ -791,11 +794,16 @@ function buildActions() {
 
   // 8. Nothing to do is itself an answer worth stating.
   if (!out.length) {
-    out.push({
+    out.push(S.accounts.length ? {
       kind: "ok", ico: "✓", title: "Nothing needs action today",
-      desc: S.accounts.length
-        ? "No account is near a cut line, no payout is due, and the ratios hold. Trade only the accounts inside their ON window and update balances at the end of the day."
-        : "No accounts yet. Add your current evaluations on the Accounts tab, or use the seed button to start with two $25K Phase 1 evaluations."
+      desc: "No account is near a cut line, no payout is due, and the ratios hold. Trade only the accounts inside their ON window and update balances at the end of the day."
+    } : {
+      kind: "info", ico: "→", title: "Start here — no accounts yet",
+      desc: "Add the evaluations you actually hold, or start from the guide's opening position: two $25K Phase 1 evaluations. To see how the system behaves once it is running, load the sample portfolio — that is example data, not yours, and you can erase it in one click.",
+      btns: [
+        { label: "Seed 2 × $25K evals", cls: "btn-dark", fn: "seedStart()" },
+        { label: "Load sample portfolio", cls: "btn-ghost", fn: "loadSample()" }
+      ]
     });
   }
   return out;
@@ -1715,15 +1723,127 @@ function resetConfig() {
 }
 
 /* -------------------------------------------------------------------- data */
-function exportData() {
-  const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `prop-firm-3tier-${today()}.json`;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast("Backup downloaded.");
+
+/**
+ * Reach a viewer-granted runtime capability, or null when there is none.
+ * Opened from a local file there is no host at all, which is the normal
+ * case rather than an error — hence the quiet null.
+ */
+async function capability(name) {
+  try {
+    if (!window.claude || typeof window.claude.use !== "function") return null;
+    return await window.claude.use(name);
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Hand the viewer a backup file.
+ *
+ * Two environments, two mechanisms. Opened from disk, an ordinary blob link
+ * downloads normally. Inside a hosted viewer the page is not allowed to start
+ * a download on its own — the link would silently do nothing — so the save is
+ * offered through the downloads capability, which asks the viewer first. If
+ * neither is available the text fallback below still gets the data out; a
+ * backup must never be a dead button.
+ */
+async function exportData() {
+  const json = JSON.stringify(S, null, 2);
+  const filename = `prop-firm-3tier-${today()}.json`;
+
+  const downloads = await capability("downloads");
+  if (downloads) {
+    try {
+      await downloads.save({ filename, data: json });
+      toast("Backup saved.");
+    } catch (err) {
+      if (err && err.code === "declined") toast("Backup cancelled.");
+      else showBackupText(json, "The viewer could not save a file here. Copy the text below instead.");
+    }
+    return;
+  }
+
+  try {
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("Backup downloaded.");
+  } catch (err) {
+    showBackupText(json, "This browser blocked the download. Copy the text below instead.");
+  }
+}
+
+/** The always-available escape hatch: the backup as selectable text. */
+function showBackupText(json, note) {
+  openModal(`
+    <h3>Your backup</h3>
+    <p class="msub">${esc(note || "Copy this somewhere safe. Paste it back under Import to restore.")}</p>
+    <div class="field">
+      <textarea id="bkText" rows="12" spellcheck="false"
+        style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;">${esc(json)}</textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-dark" onclick="copyBackup()">Copy to clipboard</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    </div>`);
+  const t = $("bkText");
+  t.focus(); t.select();
+}
+
+function copyBackup() {
+  const t = $("bkText");
+  t.select();
+  const done = () => toast("Backup copied. Paste it somewhere safe.");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t.value).then(done, () => {
+      // execCommand is deprecated but still the only fallback in some views.
+      try { document.execCommand("copy"); done(); }
+      catch (e) { toast("Select the text and copy it manually."); }
+    });
+  } else {
+    try { document.execCommand("copy"); done(); }
+    catch (e) { toast("Select the text and copy it manually."); }
+  }
+}
+
+/** Show the backup as text on demand, not only when a download fails. */
+function showBackup() {
+  showBackupText(JSON.stringify(S, null, 2));
+}
+
+/** Restore from pasted text, for viewers where picking a file is awkward. */
+function pasteImport() {
+  openModal(`
+    <h3>Paste a backup</h3>
+    <p class="msub">Paste the JSON you copied earlier. This replaces everything currently in the system.</p>
+    <div class="field">
+      <textarea id="pasteText" rows="12" spellcheck="false" placeholder="{ &quot;version&quot;: 1, ... }"
+        style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="applyPaste()">Restore</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>`);
+}
+
+function applyPaste() {
+  const raw = $("pasteText").value.trim();
+  if (!raw) return toast("Paste a backup first.");
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    return toast("That is not valid JSON.");
+  }
+  if (!data || !Array.isArray(data.accounts)) return toast("That does not look like a backup from this system.");
+  if (!confirm(`Replace everything currently in the system?\n\n${data.accounts.length} accounts, ${(data.payouts || []).length} payouts, ${(data.trades || []).length} trades.`)) return;
+  S = { ...blank(), ...data, cfg: { ...DEFAULTS, ...(data.cfg || {}) } };
+  save(); closeModal(); render(); toast("Backup restored.");
 }
 
 function importData(e) {
@@ -1760,6 +1880,46 @@ function seedStart() {
     cost: S.cfg.evalFee, openedAt: d, cycleStart: d, status: "active", closedAt: null
   }));
   save(); render(); toast("Two $25K evaluations added to Tier 3.");
+}
+
+/**
+ * A worked example of the system in motion: three funded accounts staggered
+ * across the cycle, one at its payout lock, one evaluation close to its cut
+ * line, and both ratios short — so every part of the dashboard has something
+ * to say. Clearly example data; "Erase everything" in Settings clears it.
+ */
+function loadSample() {
+  if (S.accounts.length && !confirm("Replace what is currently in the system with the sample portfolio?")) return;
+
+  const back = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
+  const mk = (name, firm, tier, size, balance, opened, cycle) => ({
+    id: uid(), name, firm, tier, size, balance, cost: S.cfg.evalFee,
+    openedAt: back(opened), cycleStart: back(cycle), status: "active", closedAt: null
+  });
+
+  S = blank();
+  S.accounts = [
+    mk("FTMO 50K #1", "FTMO", 1, 50000, 51600, 60, 21),   // at the +3% lock
+    mk("FTMO 50K #2", "FTMO", 1, 50000, 48900, 45, 14),   // mid drawdown
+    mk("The5ers 25K", "The5ers", 1, 25000, 25400, 30, 7), // healthy
+    mk("FTMO 50K #3", "FTMO", 2, 50000, 51200, 20, 20),   // Phase 2, in profit
+    mk("FundedNext 25K", "FundedNext", 3, 25000, 24100, 9, 9) // eval near its cut
+  ];
+  for (let i = 0; i < 6; i++) {
+    S.payouts.push({
+      id: uid(), accountId: S.accounts[0].id, accountName: "FTMO 50K #1",
+      date: back(50 - i * 8), amount: 1500, t3: 175, t2: 350, t1: 0, personal: 0
+    });
+  }
+  for (let i = 0; i < 12; i++) {
+    const win = i % 5 < 2;
+    S.trades.push({
+      id: uid(), accountId: S.accounts[0].id, date: back(30 - i * 2),
+      result: win ? "Win" : "Loss", risk: 500, rr: S.cfg.rr, pnl: win ? 500 * S.cfg.rr : -500
+    });
+  }
+  save(); render();
+  toast("Sample portfolio loaded — example data, not yours. Erase it in Settings.");
 }
 
 /* ------------------------------------------------------------------- boot */

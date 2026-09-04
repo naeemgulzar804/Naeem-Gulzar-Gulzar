@@ -64,8 +64,30 @@ two rules cannot both hold on a single trade, so an evaluation is a multi-win jo
 construction. The calculator says so explicitly rather than papering over it, and tells
 you how many winners the account actually needs at the current size.
 
+## Trying it out
+
+The Today tab offers **Load sample portfolio** — a worked example with three funded
+accounts staggered across the cycle, one at its payout lock, one evaluation near its cut
+line, and both ratios short, so every part of the dashboard has something to say. It is
+example data, not yours; **Erase everything** under Settings & Data clears it.
+
 ## Backups
 
 `localStorage` is per-browser and per-origin. It is cleared by clearing site data, and
-it does not follow you to another device. **Export a backup from Settings & Data after
-any session that matters.**
+it does not follow you to another device. **Back up from Settings & Data after any
+session that matters.** Four paths are offered because the environment decides which
+ones work:
+
+| Action | Notes |
+|---|---|
+| **Export backup (.json)** | Downloads the file. Opened from disk this is an ordinary download; in a hosted viewer the page is not allowed to start one itself, so it asks through the viewer's save permission and you confirm. |
+| **Show as text** | The backup as selectable text with a copy button. Works everywhere, always. |
+| **Import file** | Restore from a `.json` you exported. |
+| **Paste backup** | Restore from text you copied. |
+
+The two text paths exist so a backup is never a dead button: whatever the environment
+blocks, the data can still get out and back in.
+
+Data is scoped to the address the page is opened from, so a copy opened from disk and a
+copy opened from a URL keep **separate** sets of accounts. Pick one for day-to-day use;
+copy/paste is how you move data between them.
