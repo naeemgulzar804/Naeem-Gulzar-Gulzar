@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3-Tier Prop Firm Control Room</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0f0e0b; --ink2: #3a3830; --ink3: #7a7669;
+    --paper: #faf8f4; --paper2: #f2ede4; --rule: #d8d0c0;
+    --gold: #c4973a; --gold-light: #f5e9cc;
+    --green: #2a6644; --green-light: #d4ead9;
+    --blue: #1e4d7a; --blue-light: #d4e4f5;
+    --red: #8b2020; --red-light: #f5d4d4;
+    --orange: #b84c0d; --orange-light: #fae0cc;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --shadow: 0 1px 2px rgba(15,14,11,0.04), 0 4px 16px rgba(15,14,11,0.04);
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.6; font-size: 14px; }
+
+  /* ---------- shell ---------- */
+  .topbar { background: var(--ink); color: var(--paper); padding: 14px 0; position: sticky; top: 0; z-index: 50; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  .topbar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 { font-family: var(--serif); font-size: 19px; font-weight: 400; letter-spacing: 0.01em; }
+  .brand .em { color: var(--gold); }
+  .brand .ver { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(250,248,244,0.4); }
+  .topstats { display: flex; gap: 22px; flex-wrap: wrap; }
+  .topstat .n { font-family: var(--serif); font-size: 17px; color: var(--gold); line-height: 1.1; }
+  .topstat .l { font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(250,248,244,0.45); }
+
+  .tabs { background: var(--paper2); border-bottom: 1px solid var(--rule); position: sticky; top: 60px; z-index: 40; }
+  .tabs-in { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .tabs-in::-webkit-scrollbar { display: none; }
+  .tab { background: none; border: none; font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--ink3);
+         padding: 13px 15px; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all .15s; }
+  .tab:hover { color: var(--ink); }
+  .tab.on { color: var(--ink); border-bottom-color: var(--gold); }
+  .tab .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--red); margin-left:5px; vertical-align:middle; }
+  main { padding: 26px 0 90px; }
+  .view { display: none; }
+  .view.on { display: block; }
+
+  /* ---------- typography ---------- */
+  h2.sec { font-family: var(--serif); font-size: 25px; font-weight: 400; line-height: 1.2; margin-bottom: 6px; }
+  .sec-desc { font-size: 13.5px; color: var(--ink3); max-width: 620px; margin-bottom: 22px; }
+  h3.blk { font-size: 11px; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink3); margin: 30px 0 12px; }
+  h3.blk:first-child { margin-top: 0; }
+
+  /* ---------- cards ---------- */
+  .card { background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+
+  .stat { background:#fff; border:1px solid var(--rule); border-radius:10px; padding:14px 16px; }
+  .stat .l { font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink3); margin-bottom:5px; }
+  .stat .v { font-family:var(--serif); font-size:24px; line-height:1.1; }
+  .stat .s { font-size:11.5px; color:var(--ink3); margin-top:3px; }
+  .stat.t1 .v { color: var(--green); } .stat.t2 .v { color: var(--blue); } .stat.t3 .v { color: var(--orange); }
+  .stat.good .v { color: var(--green); } .stat.bad .v { color: var(--red); } .stat.warn .v { color: var(--orange); }
+
+  /* ---------- action engine ---------- */
+  .action { display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--rule);
+            border-left-width:3px; border-radius:10px; padding:14px 16px; margin-bottom:10px; }
+  .action.crit { border-left-color: var(--red); background: #fffbfb; }
+  .action.pay  { border-left-color: var(--gold); background: #fffdf7; }
+  .action.next { border-left-color: var(--blue); }
+  .action.info { border-left-color: var(--rule); }
+  .action.ok   { border-left-color: var(--green); }
+  .action-ico { width:30px; height:30px; border-radius:50%; flex-shrink:0; display:flex; align-items:center;
+                justify-content:center; font-size:14px; font-weight:600; font-family:var(--serif); }
+  .action.crit .action-ico { background:var(--red-light); color:var(--red); }
+  .action.pay  .action-ico { background:var(--gold-light); color:var(--gold); }
+  .action.next .action-ico { background:var(--blue-light); color:var(--blue); }
+  .action.info .action-ico { background:var(--paper2); color:var(--ink3); }
+  .action.ok   .action-ico { background:var(--green-light); color:var(--green); }
+  .action-body { flex:1; min-width:0; }
+  .action-title { font-size:14px; font-weight:600; margin-bottom:2px; }
+  .action-desc { font-size:12.5px; color:var(--ink2); line-height:1.55; }
+  .action-desc code { background:var(--paper2); padding:1px 5px; border-radius:4px; font-size:11.5px; }
+  .action-side { display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex-shrink:0; }
+
+  /* ---------- ratio bar ---------- */
+  .ratio { display:flex; height:40px; border-radius:9px; overflow:hidden; border:1px solid var(--rule); margin:4px 0 8px; }
+  .ratio > div { display:flex; align-items:center; justify-content:center; min-width:0; transition: flex-grow .4s ease; }
+  .ratio .r1 { background:var(--green); } .ratio .r2 { background:var(--blue); } .ratio .r3 { background:var(--orange); }
+  .ratio .empty { background: repeating-linear-gradient(45deg, var(--paper2), var(--paper2) 6px, #e8e0d0 6px, #e8e0d0 12px); flex:1; }
+  .ratio span { font-size:11px; font-weight:600; color:#fff; letter-spacing:0.03em; white-space:nowrap; padding:0 6px; overflow:hidden; }
+
+  .meter { height:8px; background:var(--paper2); border-radius:99px; overflow:hidden; margin:7px 0 5px; }
+  .meter i { display:block; height:100%; border-radius:99px; transition: width .4s ease; }
+  .meter i.g { background:var(--green); } .meter i.b { background:var(--blue); } .meter i.o { background:var(--orange); }
+  .meter i.r { background:var(--red); } .meter i.gold { background:var(--gold); }
+
+  /* ---------- tables ---------- */
+  .tbl-wrap { overflow-x:auto; border:1px solid var(--rule); border-radius:11px; background:#fff; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead tr { background:var(--ink); }
+  thead th { padding:10px 13px; color:var(--paper); font-weight:500; font-size:10.5px; letter-spacing:0.07em;
+             text-transform:uppercase; text-align:left; white-space:nowrap; }
+  tbody tr { border-bottom:1px solid var(--rule); }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr.zebra { background:var(--paper2); }
+  tbody td { padding:10px 13px; color:var(--ink2); vertical-align:middle; }
+  tbody td.k { font-weight:500; color:var(--ink); }
+  td.num, th.num { text-align:right; font-variant-numeric: tabular-nums; }
+  .pos { color:var(--green); font-weight:600; } .neg { color:var(--red); font-weight:600; }
+  .muted { color:var(--ink3); }
+
+  /* ---------- pills / badges ---------- */
+  .pill { display:inline-block; font-size:10.5px; font-weight:600; letter-spacing:0.05em; padding:3px 9px;
+          border-radius:20px; white-space:nowrap; }
+  .p1 { background:var(--green-light); color:var(--green); }
+  .p2 { background:var(--blue-light); color:var(--blue); }
+  .p3 { background:var(--orange-light); color:var(--orange); }
+  .pcut { background:var(--red-light); color:var(--red); }
+  .prest { background:var(--paper2); color:var(--ink3); }
+  .pgold { background:var(--gold-light); color:var(--gold); }
+
+  /* ---------- forms ---------- */
+  label.f { display:block; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+            color:var(--ink3); margin-bottom:5px; }
+  input, select, textarea { width:100%; font-family:var(--sans); font-size:13.5px; color:var(--ink);
+    background:#fff; border:1px solid var(--rule); border-radius:8px; padding:9px 11px; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-light); }
+  .field { margin-bottom:13px; }
+  .frow { display:grid; gap:12px; }
+  .hint { font-size:11.5px; color:var(--ink3); margin-top:4px; line-height:1.5; }
+
+  button.btn { font-family:var(--sans); font-size:12.5px; font-weight:600; border-radius:8px; padding:8px 15px;
+    cursor:pointer; border:1px solid transparent; transition:opacity .15s, background .15s; white-space:nowrap; }
+  button.btn:hover { opacity:0.85; }
+  .btn-dark { background:var(--ink); color:var(--paper); }
+  .btn-gold { background:var(--gold); color:#fff; }
+  .btn-green{ background:var(--green); color:#fff; }
+  .btn-red  { background:var(--red); color:#fff; }
+  .btn-ghost{ background:#fff; color:var(--ink2); border-color:var(--rule); }
+  .btn-sm { padding:5px 10px; font-size:11.5px; }
+  .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* ---------- callouts ---------- */
+  .callout { border-left:3px solid var(--gold); padding:13px 16px; background:var(--gold-light);
+             border-radius:0 8px 8px 0; margin:16px 0; font-size:13px; color:var(--ink2); line-height:1.6; }
+  .callout strong { color:var(--ink); }
+  .callout.red { border-left-color:var(--red); background:var(--red-light); }
+  .callout.red strong { color:var(--red); }
+  .callout.green { border-left-color:var(--green); background:var(--green-light); }
+  .callout.green strong { color:var(--green); }
+  .callout.blue { border-left-color:var(--blue); background:var(--blue-light); }
+
+  .checklist { list-style:none; }
+  .checklist li { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--rule); font-size:13px; }
+  .checklist li:last-child { border-bottom:none; }
+  .chk { width:18px; height:18px; border-radius:50%; flex-shrink:0; display:flex; align-items:center;
+         justify-content:center; font-size:11px; font-weight:700; margin-top:1px; }
+  .chk.yes { background:var(--green); color:#fff; } .chk.no { background:var(--red-light); color:var(--red); }
+  .chk-txt { flex:1; } .chk-txt .sub { font-size:11.5px; color:var(--ink3); }
+
+  /* ---------- schedule ---------- */
+  .sched-grid { display:grid; gap:3px; grid-template-columns: 150px repeat(10, minmax(30px,1fr)); align-items:center; }
+  .sched-name { font-size:12px; font-weight:500; padding-right:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sched-cell { height:30px; border-radius:5px; display:flex; align-items:center; justify-content:center;
+                font-size:9.5px; font-weight:600; color:#fff; }
+  .sched-cell.on { background:var(--green); } .sched-cell.off { background:var(--paper2); color:var(--ink3); }
+  .sched-cell.now { box-shadow:0 0 0 2px var(--gold); }
+  .sched-head { font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink3); text-align:center; }
+
+  /* ---------- path ---------- */
+  .step { display:flex; gap:14px; margin-bottom:12px; align-items:flex-start; }
+  .step-n { width:30px; height:30px; border-radius:50%; background:var(--paper2); color:var(--ink3);
+            font-family:var(--serif); font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .step.done .step-n { background:var(--green); color:#fff; }
+  .step.now .step-n  { background:var(--gold); color:#fff; }
+  .step-b { flex:1; border:1px solid var(--rule); border-radius:10px; padding:13px 16px; background:#fff; }
+  .step.now .step-b { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-light); }
+  .step.done .step-b { background:var(--paper2); }
+  .step-t { font-size:13.5px; font-weight:600; margin-bottom:3px; }
+  .step-d { font-size:12.5px; color:var(--ink2); line-height:1.55; }
+
+  .empty { text-align:center; padding:38px 20px; color:var(--ink3); font-size:13px;
+           border:1px dashed var(--rule); border-radius:11px; background:#fff; }
+
+  /* ---------- modal ---------- */
+  .modal-bg { position:fixed; inset:0; background:rgba(15,14,11,0.55); z-index:100; display:flex;
+              align-items:flex-start; justify-content:center; padding:34px 16px; overflow-y:auto; }
+  .modal-bg[hidden] { display:none !important; }
+  .modal { background:var(--paper); border-radius:14px; max-width:560px; width:100%; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  .modal h3 { font-family:var(--serif); font-size:20px; font-weight:400; margin-bottom:4px; }
+  .modal .msub { font-size:12.5px; color:var(--ink3); margin-bottom:18px; }
+
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper);
+           padding:11px 20px; border-radius:9px; font-size:13px; z-index:200; box-shadow:0 8px 30px rgba(0,0,0,.25); }
+  .toast[hidden] { display:none !important; }
+
+  .foot { border-top:1px solid var(--rule); margin-top:40px; padding:22px 0 0; font-size:11.5px; color:var(--ink3); line-height:1.6; }
+
+  @media (max-width: 860px) {
+    .g4 { grid-template-columns: repeat(2,1fr); }
+    .g3 { grid-template-columns: 1fr; }
+    .sched-grid { grid-template-columns: 108px repeat(10, minmax(22px,1fr)); }
+  }
+  @media (max-width: 620px) {
+    .g2, .g4 { grid-template-columns: 1fr; }
+    .topstats { gap:16px; } .topstat .n { font-size:15px; }
+    .tabs { top:auto; position:static; }
+    .action { flex-wrap:wrap; } .action-side { width:100%; align-items:stretch; flex-direction:row; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap topbar-in">
+    <div class="brand">
+      <h1>3-Tier <span class="em">Control Room</span></h1>
+      <span class="ver">Prop Firm System</span>
+    </div>
+    <div class="topstats">
+      <div class="topstat"><div class="n" id="hdrT1">$0</div><div class="l">Tier 1 funded</div></div>
+      <div class="topstat"><div class="n" id="hdrT2">$0</div><div class="l">Tier 2 reserve</div></div>
+      <div class="topstat"><div class="n" id="hdrT3">$0</div><div class="l">Tier 3 pipeline</div></div>
+      <div class="topstat"><div class="n" id="hdrPay">0</div><div class="l">Lifetime payouts</div></div>
+      <div class="topstat"><div class="n" id="hdrProg">0%</div><div class="l">To $500K goal</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="wrap tabs-in" id="tabBar">
+    <button class="tab on" data-view="today">Today</button>
+    <button class="tab" data-view="accounts">Accounts</button>
+    <button class="tab" data-view="capital">Capital &amp; Ratios</button>
+    <button class="tab" data-view="payouts">Payouts</button>
+    <button class="tab" data-view="schedule">Stagger Schedule</button>
+    <button class="tab" data-view="sizing">Position Sizing</button>
+    <button class="tab" data-view="path">Path to $500K</button>
+    <button class="tab" data-view="data">Settings &amp; Data</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== TODAY ===================== -->
+  <section class="view on" id="v-today">
+    <h2 class="sec">What the system says to do today</h2>
+    <p class="sec-desc">Generated from your rules, not opinion. Anything red is a rule breach that needs
+      action now. Work the list from the top down.</p>
+
+    <div class="grid g4" style="margin-bottom:24px;">
+      <div class="stat t1"><div class="l">Tier 1 — funded</div><div class="v" id="sT1">$0</div><div class="s" id="sT1s">0 accounts</div></div>
+      <div class="stat t2"><div class="l">Tier 2 — Phase 2</div><div class="v" id="sT2">$0</div><div class="s" id="sT2s">need $0</div></div>
+      <div class="stat t3"><div class="l">Tier 3 — Phase 1</div><div class="v" id="sT3">$0</div><div class="s" id="sT3s">need $0</div></div>
+      <div class="stat"><div class="l">Open P&amp;L across accounts</div><div class="v" id="sPnl">$0</div><div class="s" id="sPnls">&mdash;</div></div>
+    </div>
+
+    <h3 class="blk">Action list</h3>
+    <div id="actionList"></div>
+
+    <h3 class="blk">Portfolio ratio — target 50 / 30 / 20</h3>
+    <div class="card">
+      <div class="ratio" id="ratioBar"></div>
+      <div id="ratioNote" class="hint"></div>
+    </div>
+
+    <h3 class="blk">Accounts on watch</h3>
+    <div id="watchList"></div>
+  </section>
+
+  <!-- ===================== ACCOUNTS ===================== -->
+  <section class="view" id="v-accounts">
+    <h2 class="sec">Accounts</h2>
+    <p class="sec-desc">Every evaluation and funded account you hold. Update the balance after each trading
+      day — every calculation in this system flows from these numbers.</p>
+
+    <div class="btn-row" style="margin-bottom:20px;">
+      <button class="btn btn-dark" onclick="openAccount()">+ Add account</button>
+      <button class="btn btn-ghost" onclick="seedStart()">Seed my 2 × $25K evals</button>
+    </div>
+
+    <h3 class="blk">Tier 1 — funded master accounts <span class="pill p1">income engine</span></h3>
+    <div id="tbl1"></div>
+    <h3 class="blk">Tier 2 — Phase 2 accounts <span class="pill p2">backup reserve</span></h3>
+    <div id="tbl2"></div>
+    <h3 class="blk">Tier 3 — Phase 1 evaluations <span class="pill p3">pipeline</span></h3>
+    <div id="tbl3"></div>
+    <h3 class="blk">Closed — cut or promoted</h3>
+    <div id="tbl0"></div>
+  </section>
+
+  <!-- ===================== CAPITAL ===================== -->
+  <section class="view" id="v-capital">
+    <h2 class="sec">Capital &amp; ratios</h2>
+    <p class="sec-desc">The 5:3:2 rule is a hard floor, not a target. This page answers one question:
+      where does the next dollar go, and am I allowed to grow Tier 1 yet?</p>
+
+    <h3 class="blk">Where the next payout dollar goes</h3>
+    <div id="spendPriority"></div>
+
+    <h3 class="blk">Ratio compliance</h3>
+    <div class="grid g2" id="ratioCards"></div>
+
+    <h3 class="blk">Reinvestment stage</h3>
+    <div id="stageCard"></div>
+
+    <h3 class="blk">Tier 1 scale-up checklist — all five must be true</h3>
+    <div class="card"><ul class="checklist" id="scaleList"></ul></div>
+
+    <h3 class="blk">Account size upgrade ladder</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Account size</th><th>Min T1</th><th>Min payouts</th><th>Condition</th><th>Status</th></tr></thead>
+      <tbody id="ladderBody"></tbody>
+    </table></div>
+    <div class="callout red"><strong>Hard limit:</strong> never put more than 40% of total T1 funding into an
+      account size you have not traded consistently before. New to $100K? Open one, not five.</div>
+  </section>
+
+  <!-- ===================== PAYOUTS ===================== -->
+  <section class="view" id="v-payouts">
+    <h2 class="sec">Payout ledger</h2>
+    <p class="sec-desc">Lock every payout at exactly +3%. Log it here and the system splits it across
+      T3, T2, T1 and personal income in the correct priority order for your current stage.</p>
+
+    <div class="grid g4" style="margin-bottom:22px;">
+      <div class="stat"><div class="l">Lifetime payouts</div><div class="v" id="pCount">0</div><div class="s">count, for upgrade gates</div></div>
+      <div class="stat good"><div class="l">Gross withdrawn</div><div class="v" id="pGross">$0</div><div class="s">all time</div></div>
+      <div class="stat"><div class="l">Reinvested</div><div class="v" id="pReinv">$0</div><div class="s">back into pipeline</div></div>
+      <div class="stat"><div class="l">Personal income</div><div class="v" id="pPersonal">$0</div><div class="s">kept</div></div>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:20px;">
+      <button class="btn btn-gold" onclick="openPayout()">+ Log a payout</button>
+    </div>
+    <div id="payoutTable"></div>
+  </section>
+
+  <!-- ===================== SCHEDULE ===================== -->
+  <section class="view" id="v-schedule">
+    <h2 class="sec">Stagger schedule</h2>
+    <p class="sec-desc">4 weeks ON, 1 week OFF, per account. The guide calls staggering the single most
+      important operational rule — two accounts sitting in the same week of their cycle defeats the
+      entire point of the system.</p>
+
+    <div id="staggerWarn"></div>
+
+    <h3 class="blk">Trading today</h3>
+    <div id="todayAccounts"></div>
+
+    <h3 class="blk">Next 10 weeks</h3>
+    <div class="card" id="schedCard"></div>
+    <div class="hint" style="margin-top:10px;">
+      <span class="pill p1">ON</span> traded normally &nbsp;·&nbsp;
+      <span class="pill prest">OFF</span> resting, do not trade &nbsp;·&nbsp; gold outline = this week
+    </div>
+  </section>
+
+  <!-- ===================== SIZING ===================== -->
+  <section class="view" id="v-sizing">
+    <h2 class="sec">Position sizing calculator</h2>
+    <p class="sec-desc">The guide insists on a formula but never states one. This is derived from its own
+      rules — minimum 1:3 RR, size from balance and remaining drawdown, step up after each loss, never
+      chase the whole target in one trade. Every input is editable in Settings.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3 class="blk">Inputs</h3>
+        <div class="field">
+          <label class="f">Account</label>
+          <select id="szAccount" onchange="calcSize()"></select>
+        </div>
+        <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+          <div class="field"><label class="f">Stop loss (pips)</label>
+            <input type="number" id="szStop" value="20" min="1" step="0.1" oninput="calcSize()"></div>
+          <div class="field"><label class="f">Value per pip / lot ($)</label>
+            <input type="number" id="szPip" value="10" min="0.01" step="0.01" oninput="calcSize()"></div>
+        </div>
+        <div class="hint">EURUSD standard lot = $10/pip. XAUUSD ≈ $10 per $1 move. Set this to match your
+          instrument and broker contract size.</div>
+      </div>
+      <div class="card" id="szOut"></div>
+    </div>
+
+    <h3 class="blk">How that number was reached</h3>
+    <div class="card" id="szWork"></div>
+
+    <h3 class="blk">Trade log — feeds the 40% win-rate gate</h3>
+    <div class="btn-row" style="margin-bottom:14px;">
+      <button class="btn btn-dark" onclick="openTrade()">+ Log a trade</button>
+    </div>
+    <div id="tradeTable"></div>
+  </section>
+
+  <!-- ===================== PATH ===================== -->
+  <section class="view" id="v-path">
+    <h2 class="sec">The path from here to $500K</h2>
+    <p class="sec-desc">Nine steps, in order. The system works out which one you are on from your actual
+      numbers. Do not skip ahead regardless of how well things are going.</p>
+    <div id="pathSteps"></div>
+  </section>
+
+  <!-- ===================== DATA ===================== -->
+  <section class="view" id="v-data">
+    <h2 class="sec">Settings &amp; data</h2>
+    <p class="sec-desc">Rule thresholds come straight from the guide but stay editable — your prop firm
+      may differ. Your data lives in this browser only; export it regularly.</p>
+
+    <div class="callout red"><strong>Read this once:</strong> everything is stored in this browser's
+      localStorage. Clearing site data, using a different browser, or opening the file from a different
+      location gives you an empty system. Export a backup after every session that matters.</div>
+
+    <h3 class="blk">Backup</h3>
+    <div class="card">
+      <div class="btn-row">
+        <button class="btn btn-dark" onclick="exportData()">Export backup (.json)</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Import backup</button>
+        <button class="btn btn-red" onclick="wipeAll()">Erase everything</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" hidden onchange="importData(event)">
+      <div class="hint" id="storageNote" style="margin-top:11px;"></div>
+    </div>
+
+    <h3 class="blk">Rule thresholds</h3>
+    <div class="card">
+      <div class="frow g3" style="grid-template-columns:repeat(3,1fr);">
+        <div class="field"><label class="f">T1 payout lock (%)</label><input type="number" id="cfgPayout" step="0.1"></div>
+        <div class="field"><label class="f">T1 cut trigger (%)</label><input type="number" id="cfgCut1" step="0.1"></div>
+        <div class="field"><label class="f">T2 / T3 cut trigger (%)</label><input type="number" id="cfgCut23" step="0.1"></div>
+        <div class="field"><label class="f">Phase 1 target (%)</label><input type="number" id="cfgP1" step="0.1"></div>
+        <div class="field"><label class="f">Phase 2 target (%)</label><input type="number" id="cfgP2" step="0.1"></div>
+        <div class="field"><label class="f">Final T1 goal ($)</label><input type="number" id="cfgGoal" step="1000"></div>
+        <div class="field"><label class="f">Weeks ON</label><input type="number" id="cfgOn" min="1"></div>
+        <div class="field"><label class="f">Weeks OFF</label><input type="number" id="cfgOff" min="0"></div>
+        <div class="field"><label class="f">Default eval fee ($)</label><input type="number" id="cfgFee" step="1"></div>
+      </div>
+      <h3 class="blk">Sizing model</h3>
+      <div class="frow g3" style="grid-template-columns:repeat(3,1fr);">
+        <div class="field"><label class="f">Minimum RR</label><input type="number" id="cfgRR" step="0.1"></div>
+        <div class="field"><label class="f">Attempts to reserve</label><input type="number" id="cfgAtt" min="1" step="1"></div>
+        <div class="field"><label class="f">Hard cap per trade (% bal)</label><input type="number" id="cfgCap" step="0.1"></div>
+      </div>
+      <div class="hint"><strong>Attempts to reserve</strong> — the calculator never risks more than the
+        remaining drawdown divided by this number, so you always keep this many attempts in hand before
+        the cut level. Lower = more aggressive.</div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-green" onclick="saveConfig()">Save thresholds</button>
+        <button class="btn btn-ghost" onclick="resetConfig()">Restore guide defaults</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <div>The 3-Tier Prop Firm Framework — calculated evaluation passing + staggered account cycling.</div>
+    <div style="margin-top:5px;">For your own use only. Always trade within the specific rules of your chosen
+      prop firm — where a firm's rules are stricter than this system's, the firm's rules win.</div>
+  </div>
+</main>
+
+<div class="modal-bg" id="modalBg" hidden><div class="modal" id="modalBox"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+/* =========================================================================
+   3-TIER PROP FIRM CONTROL ROOM
+   A single-file system. No server, no dependencies, no network calls.
+   State lives in localStorage under one key and is exportable as JSON.
+   ========================================================================= */
+
+const KEY = "propfirm.3tier.v1";
+
+/* Defaults come straight from the guide. All are editable in Settings
+   because a given prop firm may impose tighter rules than these. */
+const DEFAULTS = {
+  payoutPct: 3,      // T1: lock the payout the moment the account is +3%
+  cut1Pct: -6,       // T1: cut a funded account at -6%
+  cut23Pct: -4,      // T2/T3: cut at -4%, rebuy is cheaper than recovery
+  phase1Pct: 8,      // typical Phase 1 profit target
+  phase2Pct: 5,      // typical Phase 2 profit target
+  goalT1: 500000,
+  weeksOn: 4,
+  weeksOff: 1,
+  evalFee: 175,      // default cost of one evaluation
+  rr: 3,             // minimum 1:3 risk-reward, never below
+  attempts: 2,       // attempts held in reserve before the cut level
+  capPct: 2          // hard ceiling on risk per trade, % of balance
+};
+
+const T2_RATIO = 0.6;  // T2 is always 60% of T1
+const T3_RATIO = 0.4;  // T3 is always 40% of T1
+
+let S = load();
+
+function blank() {
+  return { version: 1, cfg: { ...DEFAULTS }, accounts: [], payouts: [], trades: [] };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return blank();
+    const parsed = JSON.parse(raw);
+    // Merge config so a saved file from an older version still gets new keys.
+    parsed.cfg = { ...DEFAULTS, ...(parsed.cfg || {}) };
+    parsed.accounts = parsed.accounts || [];
+    parsed.payouts = parsed.payouts || [];
+    parsed.trades = parsed.trades || [];
+    return parsed;
+  } catch (e) {
+    console.error("Could not read saved data:", e);
+    return blank();
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(S));
+  } catch (e) {
+    toast("Could not save — browser storage may be full or blocked.");
+  }
+}
+
+/* ---------------------------------------------------------------- helpers */
+const $ = (id) => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g,
+  (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function money(n, decimals = 0) {
+  const v = Number(n) || 0;
+  return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US",
+    { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function pct(n, d = 2) { const v = Number(n) || 0; return (v > 0 ? "+" : "") + v.toFixed(d) + "%"; }
+function today() { return new Date().toISOString().slice(0, 10); }
+function daysBetween(a, b) { return Math.floor((new Date(b) - new Date(a)) / 86400000); }
+function fmtDate(d) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-GB",
+    { day: "numeric", month: "short", year: "numeric" });
+}
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.hidden = true; }, 2800);
+}
+
+/* ==========================================================================
+   DERIVED STATE — every number the UI shows comes from here.
+   ========================================================================== */
+
+/** Live accounts are the ones still in play: not cut, not promoted away. */
+function live() { return S.accounts.filter((a) => a.status === "active"); }
+function tierAccounts(t) { return live().filter((a) => a.tier === t); }
+/** A tier's size is the sum of ACCOUNT SIZES it holds, not its cash balance. */
+function tierTotal(t) { return tierAccounts(t).reduce((s, a) => s + (a.size || 0), 0); }
+
+/** Per-account read: P&L, distance to the cut line, distance to a payout. */
+function readAccount(a) {
+  const start = a.size || 0;
+  const bal = a.balance == null ? start : a.balance;
+  const pnl = bal - start;
+  const pnlPct = start ? (pnl / start) * 100 : 0;
+  const cutPct = a.tier === 1 ? S.cfg.cut1Pct : S.cfg.cut23Pct;
+  const cutLevel = start * (1 + cutPct / 100);
+  const targetPct = a.tier === 1 ? S.cfg.payoutPct
+    : a.tier === 2 ? S.cfg.phase2Pct : S.cfg.phase1Pct;
+  const targetLevel = start * (1 + targetPct / 100);
+
+  return {
+    start, bal, pnl, pnlPct, cutPct, cutLevel, targetPct, targetLevel,
+    mustCut: pnlPct <= cutPct,
+    hitTarget: pnlPct >= targetPct,
+    toCut: bal - cutLevel,            // dollars of room left before the cut
+    toTarget: targetLevel - bal,      // dollars still needed to hit target
+    /** How far through the risk budget this account has travelled, 0–1. */
+    riskUsed: Math.min(1, Math.max(0, -pnlPct / Math.abs(cutPct)))
+  };
+}
+
+/** The whole portfolio in one object. Recomputed on every render. */
+function snapshot() {
+  const t1 = tierTotal(1), t2 = tierTotal(2), t3 = tierTotal(3);
+  const needT2 = t1 * T2_RATIO, needT3 = t1 * T3_RATIO;
+  const gap2 = Math.max(0, needT2 - t2), gap3 = Math.max(0, needT3 - t3);
+  const ratiosOk = gap2 <= 0.001 && gap3 <= 0.001 && t1 > 0;
+
+  const payoutCount = S.payouts.length;
+  const gross = S.payouts.reduce((s, p) => s + (p.amount || 0), 0);
+  const personal = S.payouts.reduce((s, p) => s + (p.personal || 0), 0);
+
+  return {
+    t1, t2, t3, needT2, needT3, gap2, gap3, ratiosOk,
+    total: t1 + t2 + t3,
+    payoutCount, gross, personal, reinvested: gross - personal,
+    stage: stageFor(t1),
+    progress: Math.min(100, (t1 / (S.cfg.goalT1 || 500000)) * 100)
+  };
+}
+
+/** The reinvestment ladder — reinvest rate falls as the system matures. */
+function stageFor(t1) {
+  if (t1 < 100000) return { n: 1, name: "Seed", range: "$0 → $100K", reinvest: 80, priority: "Build pipeline first" };
+  if (t1 < 300000) return { n: 2, name: "Build", range: "$100K → $300K", reinvest: 65, priority: "Expand account sizes" };
+  if (t1 < 500000) return { n: 3, name: "Scale", range: "$300K → $500K", reinvest: 50, priority: "Final push to target" };
+  return { n: 4, name: "Sustain", range: "$500K+", reinvest: 30, priority: "Replace accounts only, keep the rest" };
+}
+
+/** Win rate over the most recent N logged trades. Null when none logged. */
+function winRate(n = 20) {
+  const recent = [...S.trades].sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, n);
+  const decided = recent.filter((t) => t.result === "Win" || t.result === "Loss");
+  if (!decided.length) return { rate: null, count: 0 };
+  const wins = decided.filter((t) => t.result === "Win").length;
+  return { rate: (wins / decided.length) * 100, count: decided.length };
+}
+
+/** Most recent date a Tier 1 account was cut — the scale-up gate needs it. */
+function lastT1Cut() {
+  const cuts = S.accounts.filter((a) => a.status === "cut" && a.tier === 1 && a.closedAt);
+  if (!cuts.length) return null;
+  return cuts.map((a) => a.closedAt).sort().slice(-1)[0];
+}
+
+/** Payouts taken since the last T1 cut — the guide's "consecutive payouts". */
+function consecutivePayouts() {
+  const cut = lastT1Cut();
+  if (!cut) return S.payouts.length;
+  return S.payouts.filter((p) => (p.date || "") > cut).length;
+}
+
+/** The five scale-up conditions. All must pass before T1 grows. */
+function scaleChecks() {
+  const s = snapshot();
+  const wr = winRate(20);
+  const cut = lastT1Cut();
+  const sinceCut = cut ? daysBetween(cut, today()) : null;
+  const consec = consecutivePayouts();
+
+  return [
+    { ok: consec >= 3, label: "3 or more consecutive payouts completed",
+      sub: `${consec} payout${consec === 1 ? "" : "s"} since the last Tier 1 cut` },
+    { ok: cut === null || sinceCut >= 14, label: "No Tier 1 account cut in the last 14 days",
+      sub: cut === null ? "No Tier 1 account has ever been cut" : `Last cut ${sinceCut} day${sinceCut === 1 ? "" : "s"} ago (${fmtDate(cut)})` },
+    { ok: wr.rate !== null && wr.rate >= 40, label: "Win rate 40% or above over the last 20 trades",
+      sub: wr.rate === null ? "No trades logged yet — log trades on the Position Sizing tab"
+                            : `${wr.rate.toFixed(0)}% over ${wr.count} logged trade${wr.count === 1 ? "" : "s"}` },
+    { ok: s.t1 > 0 && s.gap2 <= 0.001, label: "Tier 2 stocked at 60% of Tier 1",
+      sub: s.t1 === 0 ? "No Tier 1 accounts yet" : `${money(s.t2)} of ${money(s.needT2)} required` },
+    { ok: s.t1 > 0 && s.gap3 <= 0.001, label: "Tier 3 stocked at 40% of Tier 1",
+      sub: s.t1 === 0 ? "No Tier 1 accounts yet" : `${money(s.t3)} of ${money(s.needT3)} required` }
+  ];
+}
+
+/* ---------------------------------------------------------- stagger cycle */
+/**
+ * Where an account sits in its 4-ON / 1-OFF cycle on a given date.
+ * Week 0-3 of the cycle is ON, week 4 is the rest week.
+ */
+function cyclePos(acct, date) {
+  const start = acct.cycleStart || acct.openedAt || today();
+  const len = (S.cfg.weeksOn || 4) + (S.cfg.weeksOff || 1);
+  const weeks = Math.floor(daysBetween(start, date) / 7);
+  if (weeks < 0) return { week: -1, on: false, pending: true };
+  const w = ((weeks % len) + len) % len;
+  return { week: w, on: w < (S.cfg.weeksOn || 4), pending: false };
+}
+
+/** Two T1 accounts in the same cycle week defeat the purpose of staggering. */
+function staggerCollisions() {
+  const t1 = tierAccounts(1);
+  const buckets = {};
+  t1.forEach((a) => {
+    const w = cyclePos(a, today()).week;
+    (buckets[w] = buckets[w] || []).push(a);
+  });
+  return Object.values(buckets).filter((g) => g.length > 1);
+}
+
+/* ==========================================================================
+   THE ACTION ENGINE
+   Turns the current state into an ordered list of things to do today.
+   Order is deliberate: breaches first, money second, growth last.
+   ========================================================================== */
+function buildActions() {
+  const out = [];
+  const s = snapshot();
+  const d = today();
+
+  // 1. Rule breaches — accounts sitting past their cut line.
+  live().forEach((a) => {
+    const r = readAccount(a);
+    if (!r.mustCut) return;
+    out.push({
+      kind: "crit", ico: "!", title: `Cut ${a.name} now — ${pct(r.pnlPct)}`,
+      desc: a.tier === 1
+        ? `This funded account is past the ${S.cfg.cut1Pct}% cut line. Close it, promote a Tier 2 account into its place, and buy a fresh Phase 1 evaluation for Tier 3. Do not try to recover it.`
+        : `This ${a.tier === 2 ? "Phase 2" : "Phase 1"} account is past the ${S.cfg.cut23Pct}% cut line. Cut it and rebuy — a fresh evaluation costs less than fighting uphill.`,
+      btns: [{ label: "Cut it", cls: "btn-red", fn: `cutAccount('${a.id}')` }]
+    });
+  });
+
+  // 2. Money on the table — funded accounts at or above the payout lock.
+  tierAccounts(1).forEach((a) => {
+    const r = readAccount(a);
+    if (!r.hitTarget) return;
+    const amount = r.start * (S.cfg.payoutPct / 100);
+    out.push({
+      kind: "pay", ico: "$", title: `Request payout on ${a.name} — ${pct(r.pnlPct)}`,
+      desc: `This account has hit the +${S.cfg.payoutPct}% lock (about ${money(amount)}). Request it today. Do not wait for 5% or 10% — small frequent payouts compound faster and cannot be given back.`,
+      btns: [{ label: "Log payout", cls: "btn-gold", fn: `openPayout('${a.id}')` }]
+    });
+  });
+
+  // 3. Evaluations that have cleared their phase target.
+  tierAccounts(3).forEach((a) => {
+    const r = readAccount(a);
+    if (!r.hitTarget) return;
+    out.push({
+      kind: "next", ico: "→", title: `${a.name} passed Phase 1 — promote to Tier 2`,
+      desc: `At ${pct(r.pnlPct)} this evaluation has cleared its ${S.cfg.phase1Pct}% target. Move it to Tier 2 and buy a replacement Phase 1 evaluation so the pipeline never runs dry.`,
+      btns: [{ label: "Promote to T2", cls: "btn-dark", fn: `promote('${a.id}')` }]
+    });
+  });
+  tierAccounts(2).forEach((a) => {
+    const r = readAccount(a);
+    if (!r.hitTarget) return;
+    out.push({
+      kind: "next", ico: "→", title: `${a.name} passed Phase 2 — it is funded`,
+      desc: `At ${pct(r.pnlPct)} this account has cleared its ${S.cfg.phase2Pct}% target. Promote it to Tier 1, then refill the Tier 2 slot from Tier 3 and buy a fresh evaluation to backfill Tier 3.`,
+      btns: [{ label: "Promote to T1", cls: "btn-green", fn: `promote('${a.id}')` }]
+    });
+  });
+
+  // 4. Ratio breaches — the pipeline is thinner than the rules allow.
+  if (s.t1 > 0 && s.gap3 > 0.001) {
+    const n = evalsNeeded(s.gap3);
+    out.push({
+      kind: "crit", ico: "3", title: `Tier 3 is short by ${money(s.gap3)}`,
+      desc: `With ${money(s.t1)} in Tier 1 you must hold ${money(s.needT3)} in Phase 1 evaluations (40%). You hold ${money(s.t3)}. Buy ${n.count} × ${money(n.size)} evaluation${n.count === 1 ? "" : "s"} — roughly ${money(n.cost)}. This is the first call on every payout.`
+    });
+  }
+  if (s.t1 > 0 && s.gap2 > 0.001) {
+    out.push({
+      kind: "crit", ico: "2", title: `Tier 2 is short by ${money(s.gap2)}`,
+      desc: `Tier 2 must hold ${money(s.needT2)} (60% of Tier 1); you hold ${money(s.t2)}. Tier 2 is filled by passing Tier 3 evaluations, not bought directly — push your Phase 1 accounts through, and keep Tier 3 oversupplied until the gap closes. No Tier 1 expansion and no personal income until it does.`
+    });
+  }
+
+  // 5. Staggering — the operational rule the guide calls the most important.
+  staggerCollisions().forEach((group) => {
+    out.push({
+      kind: "crit", ico: "≡", title: `${group.length} Tier 1 accounts are in the same cycle week`,
+      desc: `${group.map((a) => esc(a.name)).join(", ")} sit at the same point in the 4-ON/1-OFF cycle, so one bad week hits them all at once. Offset their cycle start dates by at least one week on the Accounts tab.`
+    });
+  });
+
+  // 6. Accounts in their rest week — a reminder not to force trades.
+  const resting = tierAccounts(1).filter((a) => !cyclePos(a, d).on);
+  if (resting.length) {
+    out.push({
+      kind: "info", ico: "z", title: `${resting.length} account${resting.length === 1 ? " is" : "s are"} resting this week`,
+      desc: `${resting.map((a) => esc(a.name)).join(", ")} — do not trade ${resting.length === 1 ? "it" : "them"} until the rest week ends. Forcing trades on a resting account is how every account ends up running through the same losing window.`
+    });
+  }
+
+  // 7. Growth — only once everything above is clean.
+  if (s.t1 > 0 && s.ratiosOk) {
+    const checks = scaleChecks();
+    const failed = checks.filter((c) => !c.ok);
+    if (!failed.length) {
+      out.push({
+        kind: "ok", ico: "✓", title: "You are cleared to expand Tier 1",
+        desc: `All five scale-up conditions pass and both ratios hold. Add funded capital — but stay on your current account size unless the upgrade ladder has unlocked the next one.`
+      });
+    } else {
+      out.push({
+        kind: "info", ico: "·", title: `Hold Tier 1 — ${failed.length} scale-up condition${failed.length === 1 ? "" : "s"} not met`,
+        desc: failed.map((c) => esc(c.label)).join(" · ") + ". Keep cycling; do not add Tier 1 funding yet."
+      });
+    }
+  }
+
+  // 8. Nothing to do is itself an answer worth stating.
+  if (!out.length) {
+    out.push({
+      kind: "ok", ico: "✓", title: "Nothing needs action today",
+      desc: S.accounts.length
+        ? "No account is near a cut line, no payout is due, and the ratios hold. Trade only the accounts inside their ON window and update balances at the end of the day."
+        : "No accounts yet. Add your current evaluations on the Accounts tab, or use the seed button to start with two $25K Phase 1 evaluations."
+    });
+  }
+  return out;
+}
+
+/** How many evaluations of the usual size are needed to close a tier gap. */
+function evalsNeeded(gap) {
+  const sizes = live().map((a) => a.size).filter(Boolean);
+  const size = sizes.length ? Math.min(...sizes) : 25000;
+  const count = Math.max(1, Math.ceil(gap / size));
+  return { size, count, cost: count * (S.cfg.evalFee || 0) };
+}
+
+/* ==========================================================================
+   SPEND PRIORITY
+   The guide's order, without exception:
+     restock T3  →  restock T2  →  expand T1  →  personal income.
+   Personal income is zero until both ratios hold, whatever the stage says.
+   ========================================================================== */
+function spendPlan(amount) {
+  const s = snapshot();
+  const steps = [];
+  let left = amount;
+
+  // Step 1 — Tier 3 pipeline.
+  const n3 = s.gap3 > 0.001 ? evalsNeeded(s.gap3) : null;
+  const spend3 = n3 ? Math.min(left, n3.cost) : 0;
+  left -= spend3;
+  steps.push({
+    n: 1, tier: 3, label: "Restock Tier 3 pipeline",
+    detail: n3
+      ? `Short ${money(s.gap3)} of account size. Buy ${n3.count} × ${money(n3.size)} Phase 1 eval${n3.count === 1 ? "" : "s"} at ${money(S.cfg.evalFee)} each.`
+      : "Fully stocked at 40% of Tier 1. Nothing owed here.",
+    amount: spend3, done: !n3
+  });
+
+  // Step 2 — Tier 2 reserve. Filled by promotion, so the money buys supply.
+  const n2 = s.gap2 > 0.001 ? evalsNeeded(s.gap2) : null;
+  const spend2 = n2 ? Math.min(left, n2.cost) : 0;
+  left -= spend2;
+  steps.push({
+    n: 2, tier: 2, label: "Restock Tier 2 reserve",
+    detail: n2
+      ? `Short ${money(s.gap2)}. Tier 2 fills by promotion, so buy ${n2.count} more eval${n2.count === 1 ? "" : "s"} (${money(n2.cost)}) to push extra supply through Phase 1.`
+      : "Fully stocked at 60% of Tier 1. Nothing owed here.",
+    amount: spend2, done: !n2
+  });
+
+  // Step 3 — expand Tier 1, but only when every gate is open.
+  const gatesOpen = s.ratiosOk && scaleChecks().every((c) => c.ok);
+  const reinvestRate = s.ratiosOk ? s.stage.reinvest / 100 : 1;
+  const toT1 = gatesOpen ? Math.max(0, left * reinvestRate) : 0;
+  steps.push({
+    n: 3, tier: 1, label: "Expand Tier 1 funding",
+    detail: gatesOpen
+      ? `Cleared. Stage ${s.stage.n} (${s.stage.name}) reinvests ${s.stage.reinvest}% of what remains.`
+      : s.ratiosOk ? "Blocked — the five scale-up conditions are not all met yet."
+                   : "Blocked — Tier 2 and Tier 3 must hit their ratios first.",
+    amount: toT1, done: false, blocked: !gatesOpen
+  });
+
+  // Step 4 — personal income, last and conditional.
+  const personal = s.ratiosOk ? Math.max(0, left - toT1) : 0;
+  steps.push({
+    n: 4, tier: 0, label: "Personal income",
+    detail: s.ratiosOk
+      ? `Stage ${s.stage.n} take-home is ${100 - s.stage.reinvest}% of what survives the first three steps.`
+      : "Zero. The guide is explicit: if Tier 2 and Tier 3 are not fully stocked at the correct ratios, no personal income is taken.",
+    amount: personal, done: false, blocked: !s.ratiosOk
+  });
+
+  return { steps, personal, reinvested: amount - personal };
+}
+
+/* ==========================================================================
+   POSITION SIZING — derived, since the guide never states its formula.
+
+   The guide's own constraints are:
+     · minimum 1:3 risk-reward on every trade
+     · size from current balance AND remaining drawdown
+     · step the size up after each loss to cover accumulated drawdown
+     · never try to take the whole profit target in one trade
+     · cut the account at -4% rather than fight
+
+   The smallest formula satisfying all five:
+
+     needed     = profit target - current profit        (grows after a loss)
+     recovery   = needed / RR                           (one 1:3 win clears it)
+     reserve    = remaining drawdown / attempts         (keeps N tries in hand)
+     cap        = balance x hard cap %                  (absolute ceiling)
+     RISK       = min(recovery, reserve, cap)
+
+   Because `needed` grows with every loss, the size steps up on its own.
+   Because `reserve` shrinks with every loss, it can never step up into the
+   cut level. The binding constraint is always shown, so the number is never
+   a black box.
+   ========================================================================== */
+function sizeFor(acct, stopPips, pipValue) {
+  const r = readAccount(acct);
+  const cfg = S.cfg;
+  const rr = cfg.rr || 3;
+
+  const needed = Math.max(0, r.toTarget);
+  const remainingDD = Math.max(0, r.toCut);
+  const attempts = Math.max(1, cfg.attempts || 2);
+
+  // The FULL drawdown allowance this account started with, not what is left.
+  // Dividing the *remaining* drawdown would halve the size after every loss —
+  // a decaying tail that shrinks toward zero and can never reach the target,
+  // which is the opposite of the escalation the guide asks for. Reserving
+  // against the original budget gives a genuine `attempts` tries at full size.
+  const ddBudget = r.start * (Math.abs(r.cutPct) / 100);
+
+  const recovery = needed / rr;
+  const reserve = Math.min(remainingDD, ddBudget / attempts);
+  const cap = r.bal * ((cfg.capPct || 2) / 100);
+
+  const candidates = [
+    { key: "recovery", label: `Target recovery — ${money(needed)} still needed ÷ ${rr} RR`, value: recovery },
+    { key: "reserve", label: `Drawdown reserve — ${money(ddBudget)} budget ÷ ${attempts} attempts, capped at the ${money(remainingDD)} left`, value: reserve },
+    { key: "cap", label: `Hard cap — ${cfg.capPct}% of ${money(r.bal)}`, value: cap }
+  ];
+  const winner = candidates.reduce((a, b) => (b.value < a.value ? b : a));
+  const risk = Math.max(0, winner.value);
+
+  const lots = (stopPips > 0 && pipValue > 0) ? risk / (stopPips * pipValue) : 0;
+  const reward = risk * rr;
+
+  // Can one win at this size still clear what is left of the target? When it
+  // cannot, the account needs several winners — worth knowing before entering.
+  const winsNeeded = reward > 0 ? Math.ceil(needed / reward) : Infinity;
+
+  // The arithmetic that decides whether this account is winnable at all:
+  // clearing the target in a single 1:RR win costs `needed/rr` of risk, but
+  // only `remainingDD` is available before the cut line.
+  const oneWinRisk = recovery;
+  const squeezed = oneWinRisk > remainingDD && remainingDD > 0;
+
+  return {
+    read: r, risk, reward, lots, candidates, binding: winner,
+    remainingDD, ddBudget, needed, rr, winsNeeded, oneWinRisk, squeezed,
+    // Losses this size can absorb before the account reaches the cut line.
+    absorbs: risk > 0 ? Math.floor(remainingDD / risk) : 0
+  };
+}
+
+/* ==========================================================================
+   RENDER
+   ========================================================================== */
+function render() {
+  const s = snapshot();
+
+  // Header
+  $("hdrT1").textContent = money(s.t1);
+  $("hdrT2").textContent = money(s.t2);
+  $("hdrT3").textContent = money(s.t3);
+  $("hdrPay").textContent = s.payoutCount;
+  $("hdrProg").textContent = s.progress.toFixed(0) + "%";
+
+  renderToday(s);
+  renderAccounts();
+  renderCapital(s);
+  renderPayouts(s);
+  renderSchedule();
+  renderSizing();
+  renderPath(s);
+  renderConfig();
+
+  // Flag the Today tab when something needs action.
+  const urgent = buildActions().filter((a) => a.kind === "crit" || a.kind === "pay").length;
+  const tab = document.querySelector('.tab[data-view="today"]');
+  tab.innerHTML = "Today" + (urgent ? ' <span class="dot"></span>' : "");
+}
+
+/* ------------------------------------------------------------------ today */
+function renderToday(s) {
+  $("sT1").textContent = money(s.t1);
+  $("sT1s").textContent = `${tierAccounts(1).length} account${tierAccounts(1).length === 1 ? "" : "s"} funded`;
+  $("sT2").textContent = money(s.t2);
+  $("sT2s").innerHTML = s.t1 === 0 ? "no Tier 1 yet"
+    : s.gap2 > 0.001 ? `<span class="neg">short ${money(s.gap2)}</span> of ${money(s.needT2)}`
+                     : `<span class="pos">at target</span> (${money(s.needT2)})`;
+  $("sT3").textContent = money(s.t3);
+  $("sT3s").innerHTML = s.t1 === 0 ? "no Tier 1 yet"
+    : s.gap3 > 0.001 ? `<span class="neg">short ${money(s.gap3)}</span> of ${money(s.needT3)}`
+                     : `<span class="pos">at target</span> (${money(s.needT3)})`;
+
+  const pnl = live().reduce((sum, a) => sum + readAccount(a).pnl, 0);
+  const el = $("sPnl");
+  el.textContent = money(pnl);
+  el.parentElement.className = "stat " + (pnl > 0 ? "good" : pnl < 0 ? "bad" : "");
+  $("sPnls").textContent = `${live().length} live account${live().length === 1 ? "" : "s"}`;
+
+  // Action list
+  $("actionList").innerHTML = buildActions().map((a) => `
+    <div class="action ${a.kind}">
+      <div class="action-ico">${esc(a.ico)}</div>
+      <div class="action-body">
+        <div class="action-title">${a.title}</div>
+        <div class="action-desc">${a.desc}</div>
+      </div>
+      ${a.btns ? `<div class="action-side">${a.btns.map((b) =>
+        `<button class="btn ${b.cls} btn-sm" onclick="${b.fn}">${esc(b.label)}</button>`).join("")}</div>` : ""}
+    </div>`).join("");
+
+  // Ratio bar — shows what you hold against what the ratio demands.
+  const bar = $("ratioBar");
+  if (s.total === 0) {
+    bar.innerHTML = `<div class="empty"></div>`;
+    $("ratioNote").textContent = "Add accounts to see your ratio.";
+  } else {
+    const seg = (cls, val, label) => val <= 0 ? "" :
+      `<div class="${cls}" style="flex:${val}"><span>${label}</span></div>`;
+    bar.innerHTML =
+      seg("r1", s.t1, `T1 ${money(s.t1)} · ${((s.t1 / s.total) * 100).toFixed(0)}%`) +
+      seg("r2", s.t2, `T2 ${money(s.t2)} · ${((s.t2 / s.total) * 100).toFixed(0)}%`) +
+      seg("r3", s.t3, `T3 ${money(s.t3)} · ${((s.t3 / s.total) * 100).toFixed(0)}%`);
+    $("ratioNote").innerHTML = s.ratiosOk
+      ? `<span class="pos">Ratios hold.</span> Tier 2 at ${money(s.t2)} and Tier 3 at ${money(s.t3)} both meet the floor set by ${money(s.t1)} in Tier 1.`
+      : `Target from ${money(s.t1)} in Tier 1: T2 ${money(s.needT2)} (60%), T3 ${money(s.needT3)} (40%). ` +
+        `<span class="neg">Short ${money(s.gap2 + s.gap3)} in total.</span> No Tier 1 expansion and no personal income until both are met.`;
+  }
+
+  // Watch list — the two or three accounts closest to a decision.
+  const watch = live().map((a) => ({ a, r: readAccount(a) }))
+    .sort((x, y) => y.r.riskUsed - x.r.riskUsed).slice(0, 5);
+  $("watchList").innerHTML = watch.length ? `<div class="tbl-wrap"><table>
+    <thead><tr><th>Account</th><th>Tier</th><th class="num">Balance</th><th class="num">P&amp;L</th>
+      <th class="num">Room to cut</th><th style="width:150px;">Risk budget used</th></tr></thead>
+    <tbody>${watch.map(({ a, r }, i) => `<tr class="${i % 2 ? "zebra" : ""}">
+      <td class="k">${esc(a.name)}</td>
+      <td><span class="pill p${a.tier}">T${a.tier}</span></td>
+      <td class="num">${money(r.bal)}</td>
+      <td class="num ${r.pnl >= 0 ? "pos" : "neg"}">${money(r.pnl)} <span class="muted">(${pct(r.pnlPct)})</span></td>
+      <td class="num">${money(r.toCut)}</td>
+      <td><div class="meter"><i class="${r.riskUsed > 0.75 ? "r" : r.riskUsed > 0.4 ? "o" : "g"}"
+          style="width:${(r.riskUsed * 100).toFixed(0)}%"></i></div>
+        <span class="muted" style="font-size:11px;">${(r.riskUsed * 100).toFixed(0)}% of the ${r.cutPct}% budget</span></td>
+    </tr>`).join("")}</tbody></table></div>`
+    : `<div class="empty">No live accounts. Add one on the Accounts tab.</div>`;
+}
+
+/* --------------------------------------------------------------- accounts */
+function accountTable(rows, showCycle) {
+  if (!rows.length) return `<div class="empty">Nothing here yet.</div>`;
+  return `<div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Account</th><th>Firm</th><th class="num">Size</th><th class="num">Balance</th>
+      <th class="num">P&amp;L</th><th class="num">To target</th><th class="num">To cut</th>
+      ${showCycle ? "<th>Cycle</th>" : ""}<th>Opened</th><th></th>
+    </tr></thead>
+    <tbody>${rows.map((a, i) => {
+      const r = readAccount(a);
+      const c = showCycle ? cyclePos(a, today()) : null;
+      return `<tr class="${i % 2 ? "zebra" : ""}">
+        <td class="k">${esc(a.name)}</td>
+        <td class="muted">${esc(a.firm || "—")}</td>
+        <td class="num">${money(r.start)}</td>
+        <td class="num">${money(r.bal)}</td>
+        <td class="num ${r.pnl >= 0 ? "pos" : "neg"}">${money(r.pnl)}<br><span class="muted" style="font-size:11px;">${pct(r.pnlPct)}</span></td>
+        <td class="num ${r.hitTarget ? "pos" : ""}">${r.hitTarget ? "reached" : money(r.toTarget)}</td>
+        <td class="num ${r.mustCut ? "neg" : ""}">${r.mustCut ? "BREACHED" : money(r.toCut)}</td>
+        ${showCycle ? `<td>${c.on ? '<span class="pill p1">ON wk ' + (c.week + 1) + "</span>"
+                                  : '<span class="pill prest">RESTING</span>'}</td>` : ""}
+        <td class="muted" style="font-size:12px;">${fmtDate(a.openedAt)}</td>
+        <td><div class="btn-row">
+          <button class="btn btn-ghost btn-sm" onclick="openAccount('${a.id}')">Edit</button>
+          ${a.status === "active" ? `<button class="btn btn-red btn-sm" onclick="cutAccount('${a.id}')">Cut</button>` : ""}
+        </div></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`;
+}
+
+function renderAccounts() {
+  $("tbl1").innerHTML = accountTable(tierAccounts(1), true);
+  $("tbl2").innerHTML = accountTable(tierAccounts(2), false);
+  $("tbl3").innerHTML = accountTable(tierAccounts(3), false);
+
+  const closed = S.accounts.filter((a) => a.status !== "active");
+  $("tbl0").innerHTML = closed.length ? `<div class="tbl-wrap"><table>
+    <thead><tr><th>Account</th><th>Tier at close</th><th class="num">Size</th><th class="num">Final P&amp;L</th>
+      <th>Outcome</th><th>Closed</th><th></th></tr></thead>
+    <tbody>${closed.map((a, i) => {
+      const r = readAccount(a);
+      return `<tr class="${i % 2 ? "zebra" : ""}">
+        <td class="k">${esc(a.name)}</td><td><span class="pill p${a.tier}">T${a.tier}</span></td>
+        <td class="num">${money(r.start)}</td>
+        <td class="num ${r.pnl >= 0 ? "pos" : "neg"}">${money(r.pnl)}</td>
+        <td><span class="pill ${a.status === "cut" ? "pcut" : "pgold"}">${a.status}</span></td>
+        <td class="muted" style="font-size:12px;">${fmtDate(a.closedAt)}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="removeAccount('${a.id}')">Delete</button></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>` : `<div class="empty">No closed accounts. Long may it last.</div>`;
+}
+
+/* ---------------------------------------------------------------- capital */
+function renderCapital(s) {
+  // Spend priority, worked against a representative payout.
+  const sample = s.t1 > 0 ? s.t1 * (S.cfg.payoutPct / 100) / Math.max(1, tierAccounts(1).length) : 1000;
+  const plan = spendPlan(sample);
+  $("spendPriority").innerHTML = `
+    <div class="callout"><strong>Worked against a typical single payout of ${money(sample)}.</strong>
+      The order never changes: Tier 3, then Tier 2, then Tier 1, then you.</div>
+    ${plan.steps.map((st) => `
+      <div class="action ${st.blocked ? "info" : st.done ? "ok" : "next"}">
+        <div class="action-ico">${st.n}</div>
+        <div class="action-body">
+          <div class="action-title">${esc(st.label)}
+            ${st.done ? '<span class="pill p1" style="margin-left:6px;">satisfied</span>' : ""}
+            ${st.blocked ? '<span class="pill pcut" style="margin-left:6px;">blocked</span>' : ""}</div>
+          <div class="action-desc">${st.detail}</div>
+        </div>
+        <div class="action-side"><strong style="font-family:var(--serif);font-size:19px;">${money(st.amount)}</strong></div>
+      </div>`).join("")}`;
+
+  // Ratio compliance cards
+  const card = (tier, held, need, cls) => {
+    const p = need > 0 ? Math.min(100, (held / need) * 100) : (held > 0 ? 100 : 0);
+    return `<div class="card">
+      <div class="l" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);">
+        Tier ${tier} — must be ${tier === 2 ? "60" : "40"}% of Tier 1</div>
+      <div style="font-family:var(--serif);font-size:26px;margin:4px 0;">${money(held)}
+        <span style="font-size:14px;color:var(--ink3);"> of ${money(need)}</span></div>
+      <div class="meter"><i class="${p >= 100 ? "g" : "r"}" style="width:${p}%"></i></div>
+      <div class="hint">${p >= 100 ? "Ratio satisfied — Tier 1 may grow."
+        : `Short ${money(need - held)}. Close this before spending anything on Tier 1 or taking income.`}</div>
+    </div>`;
+  };
+  $("ratioCards").innerHTML = s.t1 === 0
+    ? `<div class="empty" style="grid-column:1/-1;">No Tier 1 accounts yet — the ratios have nothing to measure against.</div>`
+    : card(2, s.t2, s.needT2) + card(3, s.t3, s.needT3);
+
+  // Reinvestment stage
+  const stages = [
+    { n: 1, name: "Seed", range: "$0 → $100K", re: 80, pri: "Build pipeline first" },
+    { n: 2, name: "Build", range: "$100K → $300K", re: 65, pri: "Expand account sizes" },
+    { n: 3, name: "Scale", range: "$300K → $500K", re: 50, pri: "Final push to target" },
+    { n: 4, name: "Sustain", range: "$500K+", re: 30, pri: "Replace accounts only, keep the rest" }
+  ];
+  $("stageCard").innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Stage</th><th>Tier 1 range</th><th class="num">Reinvest</th><th class="num">Take home</th><th>Priority</th></tr></thead>
+    <tbody>${stages.map((st) => `<tr class="${st.n === s.stage.n ? "" : "zebra"}"
+      style="${st.n === s.stage.n ? "background:var(--gold-light);" : ""}">
+      <td class="k">${st.n === s.stage.n ? "▸ " : ""}Stage ${st.n} — ${st.name}</td>
+      <td>${st.range}</td><td class="num" style="color:var(--gold);font-weight:600;">${st.re}%</td>
+      <td class="num">${100 - st.re}%</td><td class="muted">${st.pri}</td></tr>`).join("")}</tbody></table></div>
+    ${!s.ratiosOk ? `<div class="callout red"><strong>Stage rate suspended.</strong> Tier 2 and Tier 3 are not at
+      their ratios, so take-home is 0% this month regardless of what Stage ${s.stage.n} allows. 100% of every
+      payout goes back into the pipeline until both gaps close.</div>` : ""}`;
+
+  // Scale-up checklist
+  $("scaleList").innerHTML = scaleChecks().map((c) => `
+    <li><span class="chk ${c.ok ? "yes" : "no"}">${c.ok ? "✓" : "✕"}</span>
+      <span class="chk-txt"><strong style="font-weight:${c.ok ? 500 : 600};">${esc(c.label)}</strong>
+        <div class="sub">${esc(c.sub)}</div></span></li>`).join("");
+
+  // Upgrade ladder
+  const ladder = [
+    { size: 25000, minT1: 0, minPay: 0, cond: "Your entry point — start here" },
+    { size: 50000, minT1: 100000, minPay: 10, cond: "Pass one $50K eval before buying multiples" },
+    { size: 100000, minT1: 300000, minPay: 25, cond: "Pass one $100K eval before buying multiples" },
+    { size: 200000, minT1: 500000, minPay: 50, cond: "Only if the prop firm allows — separate decision" }
+  ];
+  $("ladderBody").innerHTML = ladder.map((L, i) => {
+    const ok = s.t1 >= L.minT1 && s.payoutCount >= L.minPay;
+    const why = [];
+    if (s.t1 < L.minT1) why.push(`T1 needs ${money(L.minT1 - s.t1)} more`);
+    if (s.payoutCount < L.minPay) why.push(`${L.minPay - s.payoutCount} more payouts`);
+    return `<tr class="${i % 2 ? "zebra" : ""}">
+      <td class="k">${money(L.size)}</td>
+      <td>${L.minT1 ? money(L.minT1) : "Starting point"}</td>
+      <td>${L.minPay ? L.minPay + "+" : "0 — entry"}</td>
+      <td class="muted">${L.cond}</td>
+      <td>${ok ? '<span class="pill p1">unlocked</span>'
+               : `<span class="pill pcut">locked</span><div class="muted" style="font-size:11px;margin-top:3px;">${why.join(", ")}</div>`}</td>
+    </tr>`;
+  }).join("");
+}
+
+/* ---------------------------------------------------------------- payouts */
+function renderPayouts(s) {
+  $("pCount").textContent = s.payoutCount;
+  $("pGross").textContent = money(s.gross);
+  $("pReinv").textContent = money(s.reinvested);
+  $("pPersonal").textContent = money(s.personal);
+
+  const rows = [...S.payouts].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  $("payoutTable").innerHTML = rows.length ? `<div class="tbl-wrap"><table>
+    <thead><tr><th>Date</th><th>Account</th><th class="num">Amount</th><th class="num">To T3</th>
+      <th class="num">To T2</th><th class="num">To T1</th><th class="num">Personal</th><th></th></tr></thead>
+    <tbody>${rows.map((p, i) => {
+      const acct = S.accounts.find((a) => a.id === p.accountId);
+      return `<tr class="${i % 2 ? "zebra" : ""}">
+        <td class="k">${fmtDate(p.date)}</td>
+        <td>${esc(acct ? acct.name : p.accountName || "—")}</td>
+        <td class="num" style="font-weight:600;">${money(p.amount)}</td>
+        <td class="num">${money(p.t3 || 0)}</td><td class="num">${money(p.t2 || 0)}</td>
+        <td class="num">${money(p.t1 || 0)}</td>
+        <td class="num ${p.personal > 0 ? "pos" : "muted"}">${money(p.personal || 0)}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="deletePayout('${p.id}')">Delete</button></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`
+    : `<div class="empty">No payouts logged yet. Every payout you log counts toward the upgrade ladder gates.</div>`;
+}
+
+/* --------------------------------------------------------------- schedule */
+function renderSchedule() {
+  const t1 = tierAccounts(1);
+  const collisions = staggerCollisions();
+
+  $("staggerWarn").innerHTML = !t1.length ? ""
+    : collisions.length ? `<div class="callout red"><strong>Stagger broken.</strong>
+        ${collisions.map((g) => g.map((a) => esc(a.name)).join(" and ")).join("; ")}
+        ${collisions.length === 1 && collisions[0].length === 2 ? "are" : "are"} in the same week of the cycle.
+        One bad week hits them together, which is exactly what staggering exists to prevent. Edit one account's
+        cycle start date and push it forward by a week.</div>`
+      : `<div class="callout green"><strong>Stagger holds.</strong> No two Tier 1 accounts sit at the same
+        point in the ${S.cfg.weeksOn}-on/${S.cfg.weeksOff}-off cycle.</div>`;
+
+  const onNow = t1.filter((a) => cyclePos(a, today()).on);
+  const offNow = t1.filter((a) => !cyclePos(a, today()).on);
+  $("todayAccounts").innerHTML = !t1.length
+    ? `<div class="empty">No funded accounts yet. The cycle applies to Tier 1 only.</div>`
+    : `<div class="grid g2">
+        <div class="card"><h3 class="blk" style="margin:0 0 10px;">Trade these — ${onNow.length} ON</h3>
+          ${onNow.length ? onNow.map((a) => {
+            const c = cyclePos(a, today());
+            return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--rule);">
+              <span>${esc(a.name)}</span>
+              <span class="pill p1">week ${c.week + 1} of ${S.cfg.weeksOn}</span></div>`;
+          }).join("") : '<div class="muted">Every account is resting this week. Take the week off.</div>'}
+        </div>
+        <div class="card"><h3 class="blk" style="margin:0 0 10px;">Do not touch — ${offNow.length} resting</h3>
+          ${offNow.length ? offNow.map((a) =>
+            `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--rule);">
+              <span>${esc(a.name)}</span><span class="pill prest">rest week</span></div>`).join("")
+            : '<div class="muted">Nothing resting — all accounts are inside their ON window.</div>'}
+        </div>
+      </div>`;
+
+  // 10-week forward grid
+  if (!t1.length) { $("schedCard").innerHTML = `<div class="muted">Add Tier 1 accounts to build the schedule.</div>`; return; }
+  const weeks = [];
+  const base = new Date(today() + "T00:00:00");
+  for (let i = 0; i < 10; i++) {
+    const d = new Date(base); d.setDate(d.getDate() + i * 7);
+    weeks.push(d.toISOString().slice(0, 10));
+  }
+  $("schedCard").innerHTML = `<div class="sched-grid">
+    <div></div>${weeks.map((w, i) => `<div class="sched-head">${i === 0 ? "now"
+      : new Date(w + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>`).join("")}
+    ${t1.map((a) => `<div class="sched-name" title="${esc(a.name)}">${esc(a.name)}</div>` +
+      weeks.map((w, i) => {
+        const c = cyclePos(a, w);
+        return `<div class="sched-cell ${c.on ? "on" : "off"} ${i === 0 ? "now" : ""}">${c.on ? c.week + 1 : "—"}</div>`;
+      }).join("")).join("")}
+  </div>`;
+}
+
+/* ----------------------------------------------------------------- sizing */
+function renderSizing() {
+  const sel = $("szAccount");
+  const prev = sel.value;
+  const opts = live();
+  sel.innerHTML = opts.length
+    ? opts.map((a) => `<option value="${a.id}">${esc(a.name)} — T${a.tier}, ${money(a.size)}</option>`).join("")
+    : `<option value="">No live accounts</option>`;
+  if (opts.some((a) => a.id === prev)) sel.value = prev;
+  calcSize();
+
+  const rows = [...S.trades].sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 40);
+  const wr = winRate(20);
+  $("tradeTable").innerHTML = `
+    <div class="callout ${wr.rate === null ? "" : wr.rate >= 40 ? "green" : "red"}">
+      <strong>Win rate over the last 20 trades: ${wr.rate === null ? "no data" : wr.rate.toFixed(0) + "%"}</strong>
+      ${wr.rate === null ? " — log trades here to unlock the scale-up gate that needs it."
+        : wr.rate >= 40 ? ` over ${wr.count} trades. At 1:${S.cfg.rr} risk-reward, 40% clears the bar comfortably.`
+        : ` over ${wr.count} trades. The system assumes 40% at 1:${S.cfg.rr}. Below that, Tier 1 must not grow.`}
+    </div>
+    ${rows.length ? `<div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Account</th><th>Result</th><th class="num">Risk</th>
+        <th class="num">RR</th><th class="num">P&amp;L</th><th></th></tr></thead>
+      <tbody>${rows.map((t, i) => {
+        const acct = S.accounts.find((a) => a.id === t.accountId);
+        return `<tr class="${i % 2 ? "zebra" : ""}">
+          <td class="k">${fmtDate(t.date)}</td>
+          <td class="muted">${esc(acct ? acct.name : "—")}</td>
+          <td><span class="pill ${t.result === "Win" ? "p1" : t.result === "Loss" ? "pcut" : "prest"}">${esc(t.result)}</span></td>
+          <td class="num">${money(t.risk || 0)}</td>
+          <td class="num">${t.rr ? "1:" + t.rr : "—"}</td>
+          <td class="num ${(t.pnl || 0) >= 0 ? "pos" : "neg"}">${money(t.pnl || 0)}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="deleteTrade('${t.id}')">Delete</button></td>
+        </tr>`;
+      }).join("")}</tbody></table></div>`
+      : `<div class="empty">No trades logged. The win-rate gate stays locked until there are 20.</div>`}`;
+}
+
+function calcSize() {
+  const id = $("szAccount").value;
+  const acct = S.accounts.find((a) => a.id === id);
+  const out = $("szOut"), work = $("szWork");
+
+  if (!acct) {
+    out.innerHTML = `<div class="muted">Select an account. Add one on the Accounts tab first.</div>`;
+    work.innerHTML = `<div class="muted">Nothing to show yet.</div>`;
+    return;
+  }
+
+  const stop = parseFloat($("szStop").value) || 0;
+  const pip = parseFloat($("szPip").value) || 0;
+  const z = sizeFor(acct, stop, pip);
+
+  if (z.read.hitTarget) {
+    const what = acct.tier === 1
+      ? `Request the ${S.cfg.payoutPct}% payout on the Today tab.`
+      : `Promote it to Tier ${acct.tier - 1} on the Today tab.`;
+    out.innerHTML = `<div class="callout green" style="margin:0;"><strong>Target already reached
+      — do not size another trade.</strong> ${esc(acct.name)} is at ${pct(z.read.pnlPct)}, past its
+      ${z.read.targetPct}% target. ${what} Taking another trade here risks giving back money the rules
+      say is already yours.</div>`;
+    work.innerHTML = `<div class="muted">Sizing is suppressed for an account that has already done its job.
+      Select a different account to size a trade.</div>`;
+    return;
+  }
+
+  if (z.read.mustCut) {
+    out.innerHTML = `<div class="callout red" style="margin:0;"><strong>Do not size a trade on this account.</strong>
+      It is at ${pct(z.read.pnlPct)}, past the ${z.read.cutPct}% cut line. The rule is to cut and rebuy, not to trade back.</div>`;
+    work.innerHTML = `<div class="muted">Sizing is suppressed for accounts past their cut line.</div>`;
+    return;
+  }
+
+  out.innerHTML = `
+    <h3 class="blk" style="margin:0 0 12px;">Trade this</h3>
+    <div class="grid g2" style="gap:10px;">
+      <div class="stat"><div class="l">Risk this trade</div><div class="v">${money(z.risk)}</div>
+        <div class="s">${z.read.bal ? ((z.risk / z.read.bal) * 100).toFixed(2) : 0}% of balance</div></div>
+      <div class="stat good"><div class="l">Reward at 1:${z.rr}</div><div class="v">${money(z.reward)}</div>
+        <div class="s">minimum, never less</div></div>
+      <div class="stat"><div class="l">Position size</div><div class="v">${z.lots.toFixed(2)}</div>
+        <div class="s">lots at ${stop} pip stop</div></div>
+      <div class="stat"><div class="l">Wins to clear target</div><div class="v">${z.winsNeeded === Infinity ? "—" : z.winsNeeded}</div>
+        <div class="s">at this size, ${z.absorbs} loss${z.absorbs === 1 ? "" : "es"} of room</div></div>
+    </div>
+    <div class="hint" style="margin-top:12px;">Binding constraint: <strong>${esc(z.binding.label)}</strong>.</div>
+    ${z.squeezed ? `<div class="callout red" style="margin:12px 0 0;">
+      <strong>This account cannot be passed in one trade.</strong> Clearing the ${money(z.needed)} still
+      needed in a single 1:${z.rr} win would cost ${money(z.oneWinRisk)} of risk, but only
+      ${money(z.remainingDD)} remains before the ${z.read.cutPct}% cut line. Plan on ${z.winsNeeded}
+      winning trades, or accept that the cut comes first and rebuy — which the guide treats as a
+      normal business cost, not a failure.</div>` : ""}`;
+
+  work.innerHTML = `
+    <p style="font-size:13px;color:var(--ink2);margin-bottom:14px;">
+      The size is the <strong>smallest</strong> of three limits, so no single limit can be breached.
+      Because the amount still needed grows after every loss, the size steps up on its own — that is the
+      escalation the guide asks for. The drawdown reserve is measured against the account's full
+      ${money(z.ddBudget)} allowance and then capped at the ${money(z.remainingDD)} actually left, so the
+      size can escalate freely but can never cross the cut line.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Constraint</th><th>What it protects</th><th class="num">Allows</th><th>Applied</th></tr></thead>
+      <tbody>${z.candidates.map((c, i) => `<tr class="${i % 2 ? "zebra" : ""}">
+        <td class="k">${esc(c.label)}</td>
+        <td class="muted">${c.key === "recovery" ? "Clears the remaining target in one 1:" + z.rr + " win"
+          : c.key === "reserve" ? "Keeps " + S.cfg.attempts + " attempts in hand before the cut"
+          : "Absolute ceiling on any single trade"}</td>
+        <td class="num">${money(c.value)}</td>
+        <td>${c.key === z.binding.key ? '<span class="pill pgold">binding</span>' : '<span class="muted">slack</span>'}</td>
+      </tr>`).join("")}</tbody></table></div>
+    <div class="grid g3" style="margin-top:14px;">
+      <div class="stat"><div class="l">Balance</div><div class="v" style="font-size:19px;">${money(z.read.bal)}</div></div>
+      <div class="stat"><div class="l">Still needed for target</div><div class="v" style="font-size:19px;">${money(z.needed)}</div></div>
+      <div class="stat"><div class="l">Drawdown remaining</div><div class="v" style="font-size:19px;">${money(z.remainingDD)}</div></div>
+    </div>
+    ${(() => {
+      const oneWinPct = (z.needed / z.rr) / z.read.start * 100;
+      const budgetPct = Math.abs(z.read.cutPct);
+      return oneWinPct > budgetPct ? `<div class="callout red">
+        <strong>Worth knowing about this account type.</strong> Passing it in one 1:${z.rr} win needs
+        ${oneWinPct.toFixed(2)}% of risk, but your cut rule only allows ${budgetPct.toFixed(2)}%. The two
+        rules cannot both be satisfied on a single trade, so this account is a multi-win job by
+        construction. That is a property of the targets and cut levels themselves, not of this calculator —
+        widen the cut level, lower the target, or plan for several winners.</div>` : "";
+    })()}
+    <div class="callout" style="margin-bottom:0;"><strong>This formula is derived, not quoted.</strong>
+      The guide requires a formula but never states one, so this is the smallest calculation that satisfies
+      all five of its sizing rules. Every input is editable under Settings — if you have your own formula,
+      change the inputs to match it.</div>`;
+}
+
+/* ------------------------------------------------------------------- path */
+function renderPath(s) {
+  const steps = [
+    { t: "Pass both current $25K evaluations", d: "Both sit in Tier 3. Minimum 1:3 risk-reward, calculated position sizing, one winning trade is enough. Passing Phase 1 moves them to Tier 2.",
+      done: () => s.t1 > 0 || s.t2 > 0 },
+    { t: "Pass both through Phase 2 — your first two Tier 1 accounts", d: "Once both are funded you hold $50,000 in Tier 1. Begin staggered cycling immediately, and offset their start dates so they are never in the same week.",
+      done: () => s.t1 >= 50000 },
+    { t: "Direct every early payout into Tier 2 and Tier 3", d: "At $50K in Tier 1 you need $30K in Tier 2 and $20K in Tier 3 before a single dollar comes out. Reinvestment rate: 80%.",
+      done: () => s.t1 >= 50000 && s.ratiosOk },
+    { t: "Cycle up to $100K in Tier 1 using $25K accounts only", d: "Do not upgrade size yet. Prove the system at $25K. Exit when Tier 1 reaches $100K with 10 or more payouts.",
+      done: () => s.t1 >= 100000 && s.payoutCount >= 10 },
+    { t: "Upgrade to $50K accounts — T1 $100K, T2 $60K, T3 $40K", d: "Pass one $50K evaluation before opening several. Reinvestment drops to 65%; you may keep 35%.",
+      done: () => s.t1 >= 100000 && live().some((a) => a.size >= 50000) },
+    { t: "Build Tier 1 from $100K to $300K on $50K accounts", d: "The longest phase. Cut accounts at -6%, Tier 2 replaces them the same day, Tier 3 refills Tier 2. Exit at $300K with 25+ lifetime payouts.",
+      done: () => s.t1 >= 300000 && s.payoutCount >= 25 },
+    { t: "Upgrade to $100K accounts — T1 $300K, T2 $180K, T3 $120K", d: "Pass one $100K evaluation first. Each payout cycle is now worth about $3,000 per account. Reinvestment drops to 50%.",
+      done: () => s.t1 >= 300000 && live().some((a) => a.size >= 100000) },
+    { t: "Push Tier 1 from $300K to $500K", d: "The last major reinvestment phase. Hold 50% going back in until the target is reached — five funded $100K accounts is the finish line.",
+      done: () => s.t1 >= 500000 },
+    { t: "Target reached — T1 $500K, T2 $300K, T3 $200K", d: "Five funded $100K accounts, three in Phase 2 backup, two in the Phase 1 pipeline. Gross payout potential above $15,000 a cycle. Reinvest 30%, keep 70%.",
+      done: () => s.t1 >= 500000 && s.ratiosOk }
+  ];
+
+  let current = steps.findIndex((st) => !st.done());
+  if (current === -1) current = steps.length;
+
+  $("pathSteps").innerHTML = steps.map((st, i) => {
+    const cls = i < current ? "done" : i === current ? "now" : "";
+    return `<div class="step ${cls}">
+      <div class="step-n">${i < current ? "✓" : i + 1}</div>
+      <div class="step-b">
+        ${i === current ? '<span class="pill pgold" style="margin-bottom:6px;display:inline-block;">you are here</span>' : ""}
+        <div class="step-t">${esc(st.t)}</div>
+        <div class="step-d">${esc(st.d)}</div>
+      </div></div>`;
+  }).join("");
+}
+
+/* ----------------------------------------------------------------- config */
+function renderConfig() {
+  const c = S.cfg;
+  $("cfgPayout").value = c.payoutPct; $("cfgCut1").value = c.cut1Pct;
+  $("cfgCut23").value = c.cut23Pct;   $("cfgP1").value = c.phase1Pct;
+  $("cfgP2").value = c.phase2Pct;     $("cfgGoal").value = c.goalT1;
+  $("cfgOn").value = c.weeksOn;       $("cfgOff").value = c.weeksOff;
+  $("cfgFee").value = c.evalFee;      $("cfgRR").value = c.rr;
+  $("cfgAtt").value = c.attempts;     $("cfgCap").value = c.capPct;
+
+  const bytes = new Blob([JSON.stringify(S)]).size;
+  $("storageNote").innerHTML = `Currently holding ${S.accounts.length} account${S.accounts.length === 1 ? "" : "s"},
+    ${S.payouts.length} payout${S.payouts.length === 1 ? "" : "s"} and ${S.trades.length} trade${S.trades.length === 1 ? "" : "s"}
+    — about ${(bytes / 1024).toFixed(1)} KB. Stored at <code>${esc(location.origin + location.pathname)}</code>.`;
+}
+
+/* ==========================================================================
+   MODALS & MUTATIONS
+   ========================================================================== */
+function openModal(html) {
+  $("modalBox").innerHTML = html;
+  $("modalBg").hidden = false;
+  const first = $("modalBox").querySelector("input, select");
+  if (first) first.focus();
+}
+function closeModal() { $("modalBg").hidden = true; }
+
+$("modalBg").addEventListener("click", (e) => { if (e.target.id === "modalBg") closeModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+/* ------------------------------------------------------------- account CRUD */
+function openAccount(id) {
+  const a = id ? S.accounts.find((x) => x.id === id) : null;
+  openModal(`
+    <h3>${a ? "Edit account" : "Add account"}</h3>
+    <p class="msub">${a ? "Update the balance after each trading day — the whole system reads from it."
+      : "Anything you currently hold: a live evaluation, a Phase 2 account, or a funded account."}</p>
+    <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label class="f">Account name</label>
+        <input id="mName" value="${esc(a ? a.name : "")}" placeholder="e.g. FTMO 25K #1"></div>
+      <div class="field"><label class="f">Prop firm</label>
+        <input id="mFirm" value="${esc(a ? a.firm || "" : "")}" placeholder="e.g. FTMO"></div>
+    </div>
+    <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label class="f">Tier</label>
+        <select id="mTier">
+          <option value="3"${a && a.tier === 3 ? " selected" : ""}>Tier 3 — Phase 1 evaluation</option>
+          <option value="2"${a && a.tier === 2 ? " selected" : ""}>Tier 2 — Phase 2 account</option>
+          <option value="1"${a && a.tier === 1 ? " selected" : ""}>Tier 1 — funded</option>
+        </select></div>
+      <div class="field"><label class="f">Account size ($)</label>
+        <input type="number" id="mSize" value="${a ? a.size : 25000}" step="1000" min="0"></div>
+    </div>
+    <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label class="f">Current balance ($)</label>
+        <input type="number" id="mBal" value="${a ? (a.balance == null ? a.size : a.balance) : 25000}" step="0.01"></div>
+      <div class="field"><label class="f">Cost paid ($)</label>
+        <input type="number" id="mCost" value="${a ? a.cost || 0 : S.cfg.evalFee}" step="1" min="0"></div>
+    </div>
+    <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label class="f">Opened on</label>
+        <input type="date" id="mOpen" value="${a ? a.openedAt : today()}"></div>
+      <div class="field"><label class="f">Cycle start (Tier 1)</label>
+        <input type="date" id="mCycle" value="${a ? a.cycleStart || a.openedAt : today()}">
+        <div class="hint">Stagger this against your other funded accounts.</div></div>
+    </div>
+    <div class="btn-row" style="margin-top:6px;">
+      <button class="btn btn-dark" onclick="saveAccount('${a ? a.id : ""}')">${a ? "Save changes" : "Add account"}</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      ${a ? `<button class="btn btn-red" style="margin-left:auto;" onclick="removeAccount('${a.id}')">Delete</button>` : ""}
+    </div>`);
+}
+
+function saveAccount(id) {
+  const name = $("mName").value.trim();
+  const size = parseFloat($("mSize").value);
+  if (!name) return toast("Give the account a name.");
+  if (!(size > 0)) return toast("Account size must be greater than zero.");
+
+  const patch = {
+    name, firm: $("mFirm").value.trim(), tier: parseInt($("mTier").value, 10), size,
+    balance: parseFloat($("mBal").value),
+    cost: parseFloat($("mCost").value) || 0,
+    openedAt: $("mOpen").value || today(),
+    cycleStart: $("mCycle").value || $("mOpen").value || today()
+  };
+  if (isNaN(patch.balance)) patch.balance = size;
+
+  if (id) {
+    Object.assign(S.accounts.find((a) => a.id === id), patch);
+    toast("Account updated.");
+  } else {
+    S.accounts.push({ id: uid(), status: "active", closedAt: null, ...patch });
+    toast("Account added.");
+  }
+  save(); closeModal(); render();
+}
+
+function removeAccount(id) {
+  const a = S.accounts.find((x) => x.id === id);
+  if (!a) return;
+  if (!confirm(`Delete "${a.name}" permanently? This removes it from history entirely — to close it while keeping the record, use Cut instead.`)) return;
+  S.accounts = S.accounts.filter((x) => x.id !== id);
+  save(); closeModal(); render(); toast("Account deleted.");
+}
+
+/** Cutting keeps the record: it feeds the 14-day and consecutive-payout gates. */
+function cutAccount(id) {
+  const a = S.accounts.find((x) => x.id === id);
+  if (!a) return;
+  const r = readAccount(a);
+  if (!confirm(`Cut "${a.name}" at ${pct(r.pnlPct)}?\n\nIt stays in your history as a cut account, drops out of the tier totals, and starts the 14-day clock on the Tier 1 scale-up gate.`)) return;
+  a.status = "cut";
+  a.closedAt = today();
+  save(); closeModal(); render();
+  toast(a.tier === 1 ? "Cut. Promote a Tier 2 account and rebuy an evaluation."
+                     : "Cut. Rebuy a fresh evaluation to keep the pipeline full.");
+}
+
+/** Promotion moves an account up a tier, keeping its identity and history. */
+function promote(id) {
+  const a = S.accounts.find((x) => x.id === id);
+  if (!a || a.tier === 1) return;
+  const to = a.tier - 1;
+  if (!confirm(`Promote "${a.name}" from Tier ${a.tier} to Tier ${to}?\n\nIts balance resets to ${money(a.size)} — the new phase starts from the account size.${to === 1 ? "\n\nIts cycle starts today; stagger it against your other funded accounts afterwards." : ""}`)) return;
+  a.tier = to;
+  a.balance = a.size;      // a new phase starts from the account size
+  if (to === 1) a.cycleStart = today();
+  save(); render();
+  toast(to === 1 ? "Funded. Now refill Tier 2 and buy a fresh Phase 1 eval."
+                 : "Promoted to Tier 2. Buy a replacement Phase 1 eval.");
+}
+
+/* ------------------------------------------------------------- payout CRUD */
+function openPayout(accountId) {
+  const funded = tierAccounts(1);
+  if (!funded.length) return toast("Payouts come from Tier 1. No funded accounts yet.");
+  const target = accountId || funded[0].id;
+  const acct = S.accounts.find((a) => a.id === target) || funded[0];
+  const suggested = Math.round(acct.size * (S.cfg.payoutPct / 100));
+
+  openModal(`
+    <h3>Log a payout</h3>
+    <p class="msub">The system splits it in the guide's priority order and tells you exactly where each part goes.</p>
+    <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label class="f">From account</label>
+        <select id="mAcct" onchange="previewSplit()">
+          ${funded.map((a) => `<option value="${a.id}"${a.id === target ? " selected" : ""}>${esc(a.name)} — ${money(a.size)}</option>`).join("")}
+        </select></div>
+      <div class="field"><label class="f">Amount ($)</label>
+        <input type="number" id="mAmt" value="${suggested}" step="0.01" min="0" oninput="previewSplit()">
+        <div class="hint">${S.cfg.payoutPct}% of ${money(acct.size)} = ${money(suggested)}</div></div>
+    </div>
+    <div class="field"><label class="f">Date</label><input type="date" id="mDate" value="${today()}"></div>
+    <div class="field"><label class="f">Reset the account balance to its starting size?</label>
+      <select id="mReset">
+        <option value="yes">Yes — balance returns to the account size after withdrawal</option>
+        <option value="no">No — I will update the balance myself</option>
+      </select></div>
+    <h3 class="blk" style="margin:16px 0 8px;">Where this payout goes</h3>
+    <div id="splitPreview"></div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-gold" onclick="savePayout()">Log payout</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>`);
+  previewSplit();
+}
+
+function previewSplit() {
+  const amt = parseFloat($("mAmt").value) || 0;
+  const plan = spendPlan(amt);
+  $("splitPreview").innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Priority</th><th>Goes to</th><th class="num">Amount</th></tr></thead>
+    <tbody>${plan.steps.map((st, i) => `<tr class="${i % 2 ? "zebra" : ""}">
+      <td class="k">${st.n}</td>
+      <td>${esc(st.label)}${st.blocked ? ' <span class="pill pcut">blocked</span>' : st.done ? ' <span class="pill p1">full</span>' : ""}</td>
+      <td class="num" style="font-weight:600;">${money(st.amount)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="hint" style="margin-top:8px;">${plan.personal > 0
+      ? `You keep <strong>${money(plan.personal)}</strong>; ${money(plan.reinvested)} goes back into the system.`
+      : `You keep <strong>nothing</strong> from this payout — the pipeline is not fully stocked yet.`}</div>`;
+}
+
+function savePayout() {
+  const amt = parseFloat($("mAmt").value);
+  if (!(amt > 0)) return toast("Enter a payout amount above zero.");
+  const acctId = $("mAcct").value;
+  const acct = S.accounts.find((a) => a.id === acctId);
+  const plan = spendPlan(amt);
+
+  S.payouts.push({
+    id: uid(), accountId: acctId, accountName: acct ? acct.name : "",
+    date: $("mDate").value || today(), amount: amt,
+    t3: plan.steps[0].amount, t2: plan.steps[1].amount,
+    t1: plan.steps[2].amount, personal: plan.personal
+  });
+
+  if ($("mReset").value === "yes" && acct) acct.balance = acct.size;
+
+  save(); closeModal(); render();
+  toast(plan.personal > 0 ? `Logged. ${money(plan.personal)} is yours to keep.`
+                          : "Logged. All of it goes back into the pipeline.");
+}
+
+function deletePayout(id) {
+  if (!confirm("Delete this payout? It also drops off your lifetime payout count, which the upgrade ladder gates depend on.")) return;
+  S.payouts = S.payouts.filter((p) => p.id !== id);
+  save(); render(); toast("Payout deleted.");
+}
+
+/* -------------------------------------------------------------- trade CRUD */
+function openTrade() {
+  const opts = live();
+  if (!opts.length) return toast("Add an account before logging trades.");
+  openModal(`
+    <h3>Log a trade</h3>
+    <p class="msub">Only the result matters for the win-rate gate, but risk and RR let the system check
+      you are actually taking 1:${S.cfg.rr} or better.</p>
+    <div class="frow g2" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label class="f">Account</label>
+        <select id="tAcct">${opts.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select></div>
+      <div class="field"><label class="f">Date</label><input type="date" id="tDate" value="${today()}"></div>
+    </div>
+    <div class="frow g3" style="grid-template-columns:repeat(3,1fr);">
+      <div class="field"><label class="f">Result</label>
+        <select id="tResult"><option>Win</option><option>Loss</option><option>Break Even</option></select></div>
+      <div class="field"><label class="f">Risked ($)</label><input type="number" id="tRisk" step="0.01" min="0"></div>
+      <div class="field"><label class="f">Risk-reward (1:x)</label><input type="number" id="tRR" value="${S.cfg.rr}" step="0.1" min="0"></div>
+    </div>
+    <div class="field"><label class="f">P&amp;L ($) — leave blank to derive from risk and RR</label>
+      <input type="number" id="tPnl" step="0.01" placeholder="auto"></div>
+    <div class="field"><label class="f">Also update the account balance by this P&amp;L?</label>
+      <select id="tApply"><option value="yes">Yes</option><option value="no">No</option></select></div>
+    <div class="btn-row" style="margin-top:6px;">
+      <button class="btn btn-dark" onclick="saveTrade()">Log trade</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>`);
+}
+
+function saveTrade() {
+  const result = $("tResult").value;
+  const risk = parseFloat($("tRisk").value) || 0;
+  const rr = parseFloat($("tRR").value) || 0;
+  let pnl = parseFloat($("tPnl").value);
+  if (isNaN(pnl)) pnl = result === "Win" ? risk * rr : result === "Loss" ? -risk : 0;
+
+  const acctId = $("tAcct").value;
+  S.trades.push({ id: uid(), accountId: acctId, date: $("tDate").value || today(), result, risk, rr, pnl });
+
+  if ($("tApply").value === "yes") {
+    const a = S.accounts.find((x) => x.id === acctId);
+    if (a) a.balance = (a.balance == null ? a.size : a.balance) + pnl;
+  }
+  save(); closeModal(); render();
+
+  if (rr > 0 && rr < S.cfg.rr) toast(`Logged — but 1:${rr} is below the 1:${S.cfg.rr} minimum the system assumes.`);
+  else toast("Trade logged.");
+}
+
+function deleteTrade(id) {
+  S.trades = S.trades.filter((t) => t.id !== id);
+  save(); render(); toast("Trade deleted.");
+}
+
+/* ------------------------------------------------------------------ config */
+function saveConfig() {
+  const num = (id, fallback) => { const v = parseFloat($(id).value); return isNaN(v) ? fallback : v; };
+  S.cfg = {
+    payoutPct: num("cfgPayout", DEFAULTS.payoutPct),
+    cut1Pct: -Math.abs(num("cfgCut1", DEFAULTS.cut1Pct)),
+    cut23Pct: -Math.abs(num("cfgCut23", DEFAULTS.cut23Pct)),
+    phase1Pct: num("cfgP1", DEFAULTS.phase1Pct),
+    phase2Pct: num("cfgP2", DEFAULTS.phase2Pct),
+    goalT1: num("cfgGoal", DEFAULTS.goalT1),
+    weeksOn: Math.max(1, Math.round(num("cfgOn", DEFAULTS.weeksOn))),
+    weeksOff: Math.max(0, Math.round(num("cfgOff", DEFAULTS.weeksOff))),
+    evalFee: num("cfgFee", DEFAULTS.evalFee),
+    rr: Math.max(0.1, num("cfgRR", DEFAULTS.rr)),
+    attempts: Math.max(1, Math.round(num("cfgAtt", DEFAULTS.attempts))),
+    capPct: Math.max(0.01, num("cfgCap", DEFAULTS.capPct))
+  };
+  save(); render(); toast("Thresholds saved.");
+}
+
+function resetConfig() {
+  if (!confirm("Restore every threshold to the values in the guide?")) return;
+  S.cfg = { ...DEFAULTS };
+  save(); render(); toast("Guide defaults restored.");
+}
+
+/* -------------------------------------------------------------------- data */
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `prop-firm-3tier-${today()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("Backup downloaded.");
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.accounts)) throw new Error("Not a backup from this system");
+      if (!confirm(`Replace everything currently in the system with this backup?\n\n${data.accounts.length} accounts, ${(data.payouts || []).length} payouts, ${(data.trades || []).length} trades.`)) return;
+      S = { ...blank(), ...data, cfg: { ...DEFAULTS, ...(data.cfg || {}) } };
+      save(); render(); toast("Backup restored.");
+    } catch (err) {
+      toast("That file could not be read as a backup.");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+}
+
+function wipeAll() {
+  if (!confirm("Erase every account, payout and trade permanently?")) return;
+  if (!confirm("Last check — this cannot be undone, and any un-exported data is gone for good. Continue?")) return;
+  S = blank(); save(); render(); toast("Everything erased.");
+}
+
+/** The starting position the guide describes: two $25K Phase 1 evaluations. */
+function seedStart() {
+  if (S.accounts.length && !confirm("You already have accounts. Add two more $25K Phase 1 evaluations?")) return;
+  const d = today();
+  [1, 2].forEach((n) => S.accounts.push({
+    id: uid(), name: `$25K Eval #${n}`, firm: "", tier: 3, size: 25000, balance: 25000,
+    cost: S.cfg.evalFee, openedAt: d, cycleStart: d, status: "active", closedAt: null
+  }));
+  save(); render(); toast("Two $25K evaluations added to Tier 3.");
+}
+
+/* ------------------------------------------------------------------- boot */
+document.getElementById("tabBar").addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t === btn));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === "v-" + btn.dataset.view));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+render();
+</script>
+</body>
+</html>
