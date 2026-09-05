@@ -195,6 +195,9 @@
   .modal h3 { font-family:var(--serif); font-size:20px; font-weight:400; margin-bottom:4px; }
   .modal .msub { font-size:12.5px; color:var(--ink3); margin-bottom:18px; }
 
+  .ask-bg { z-index:150; align-items:center; }
+  .ask-modal { max-width:440px; }
+  .ask-modal .btn-row { justify-content:flex-end; margin-top:18px; }
   .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper);
            padding:11px 20px; border-radius:9px; font-size:13px; z-index:200; box-shadow:0 8px 30px rgba(0,0,0,.25); }
   .toast[hidden] { display:none !important; }
@@ -465,6 +468,7 @@
 </main>
 
 <div class="modal-bg" id="modalBg" hidden><div class="modal" id="modalBox"></div></div>
+<div class="modal-bg ask-bg" id="askBg" hidden><div class="modal ask-modal" id="askBox"></div></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -1459,8 +1463,53 @@ function openModal(html) {
 }
 function closeModal() { $("modalBg").hidden = true; }
 
+/*
+ * Confirmations the page draws itself.
+ *
+ * window.confirm() cannot be used here. A hosted viewer runs this page inside
+ * a sandboxed iframe, and unless that sandbox carries "allow-modals" the
+ * browser IGNORES the call and returns false without ever showing a prompt.
+ * Every `if (!confirm(...)) return;` then becomes an unconditional return, so
+ * Delete, Cut, Promote and Erase all silently did nothing. This modal behaves
+ * identically whether the page is opened from disk or from a hosted viewer.
+ */
+let askResolve = null;
+
+function ask(title, bodyHtml, opts) {
+  const o = opts || {};
+  return new Promise((resolve) => {
+    // A second question while one is open answers the first as "no", so a
+    // dangling promise can never strand the caller.
+    if (askResolve) answerAsk(false);
+    askResolve = resolve;
+    $("askBox").innerHTML = `
+      <h3>${esc(title)}</h3>
+      ${bodyHtml ? `<p class="msub">${bodyHtml}</p>` : ""}
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="answerAsk(false)">${esc(o.cancel || "Cancel")}</button>
+        <button class="btn ${o.danger ? "btn-red" : "btn-dark"}" onclick="answerAsk(true)">${esc(o.ok || "Confirm")}</button>
+      </div>`;
+    $("askBg").hidden = false;
+    const go = $("askBox").querySelector(".btn-row button:last-child");
+    if (go) go.focus();
+  });
+}
+
+function answerAsk(value) {
+  $("askBg").hidden = true;
+  const resolve = askResolve;
+  askResolve = null;
+  if (resolve) resolve(value);
+}
+
+$("askBg").addEventListener("click", (e) => { if (e.target.id === "askBg") answerAsk(false); });
+
 $("modalBg").addEventListener("click", (e) => { if (e.target.id === "modalBg") closeModal(); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (!$("askBg").hidden) return answerAsk(false);
+  closeModal();
+});
 
 /* ------------------------------------------------------------- account CRUD */
 function openAccount(id) {
@@ -1530,20 +1579,30 @@ function saveAccount(id) {
   save(); closeModal(); render();
 }
 
-function removeAccount(id) {
+async function removeAccount(id) {
   const a = S.accounts.find((x) => x.id === id);
   if (!a) return;
-  if (!confirm(`Delete "${a.name}" permanently? This removes it from history entirely — to close it while keeping the record, use Cut instead.`)) return;
+  const yes = await ask(
+    `Delete ${a.name}?`,
+    `This removes it from your history entirely and cannot be undone. To close the account while keeping its record — which is what the tier gates read — use <strong>Cut</strong> instead.`,
+    { ok: "Delete permanently", danger: true }
+  );
+  if (!yes) return;
   S.accounts = S.accounts.filter((x) => x.id !== id);
   save(); closeModal(); render(); toast("Account deleted.");
 }
 
 /** Cutting keeps the record: it feeds the 14-day and consecutive-payout gates. */
-function cutAccount(id) {
+async function cutAccount(id) {
   const a = S.accounts.find((x) => x.id === id);
   if (!a) return;
   const r = readAccount(a);
-  if (!confirm(`Cut "${a.name}" at ${pct(r.pnlPct)}?\n\nIt stays in your history as a cut account, drops out of the tier totals, and starts the 14-day clock on the Tier 1 scale-up gate.`)) return;
+  const yes = await ask(
+    `Cut ${a.name} at ${pct(r.pnlPct)}?`,
+    `It stays in your history as a cut account, drops out of the tier totals, and starts the 14-day clock on the Tier 1 scale-up gate.`,
+    { ok: "Cut it", danger: true }
+  );
+  if (!yes) return;
   a.status = "cut";
   a.closedAt = today();
   save(); closeModal(); render();
@@ -1552,11 +1611,17 @@ function cutAccount(id) {
 }
 
 /** Promotion moves an account up a tier, keeping its identity and history. */
-function promote(id) {
+async function promote(id) {
   const a = S.accounts.find((x) => x.id === id);
   if (!a || a.tier === 1) return;
   const to = a.tier - 1;
-  if (!confirm(`Promote "${a.name}" from Tier ${a.tier} to Tier ${to}?\n\nIts balance resets to ${money(a.size)} — the new phase starts from the account size.${to === 1 ? "\n\nIts cycle starts today; stagger it against your other funded accounts afterwards." : ""}`)) return;
+  const yes = await ask(
+    `Promote ${a.name} to Tier ${to}?`,
+    `Its balance resets to ${money(a.size)} — the new phase starts from the account size.` +
+      (to === 1 ? ` Its cycle starts today; stagger it against your other funded accounts afterwards.` : ""),
+    { ok: `Promote to T${to}` }
+  );
+  if (!yes) return;
   a.tier = to;
   a.balance = a.size;      // a new phase starts from the account size
   if (to === 1) a.cycleStart = today();
@@ -1636,8 +1701,11 @@ function savePayout() {
                           : "Logged. All of it goes back into the pipeline.");
 }
 
-function deletePayout(id) {
-  if (!confirm("Delete this payout? It also drops off your lifetime payout count, which the upgrade ladder gates depend on.")) return;
+async function deletePayout(id) {
+  const yes = await ask("Delete this payout?",
+    "It also drops off your lifetime payout count, which the upgrade ladder gates depend on.",
+    { ok: "Delete", danger: true });
+  if (!yes) return;
   S.payouts = S.payouts.filter((p) => p.id !== id);
   save(); render(); toast("Payout deleted.");
 }
@@ -1716,8 +1784,11 @@ function saveConfig() {
   save(); render(); toast("Thresholds saved.");
 }
 
-function resetConfig() {
-  if (!confirm("Restore every threshold to the values in the guide?")) return;
+async function resetConfig() {
+  const yes = await ask("Restore the guide's defaults?",
+    "Every threshold returns to the value stated in the framework. Your accounts, payouts and trades are untouched.",
+    { ok: "Restore defaults" });
+  if (!yes) return;
   S.cfg = { ...DEFAULTS };
   save(); render(); toast("Guide defaults restored.");
 }
@@ -1831,7 +1902,7 @@ function pasteImport() {
     </div>`);
 }
 
-function applyPaste() {
+async function applyPaste() {
   const raw = $("pasteText").value.trim();
   if (!raw) return toast("Paste a backup first.");
   let data;
@@ -1841,7 +1912,11 @@ function applyPaste() {
     return toast("That is not valid JSON.");
   }
   if (!data || !Array.isArray(data.accounts)) return toast("That does not look like a backup from this system.");
-  if (!confirm(`Replace everything currently in the system?\n\n${data.accounts.length} accounts, ${(data.payouts || []).length} payouts, ${(data.trades || []).length} trades.`)) return;
+  const yes = await ask("Restore this backup?",
+    `It replaces everything currently in the system with <strong>${data.accounts.length} accounts</strong>, ` +
+    `${(data.payouts || []).length} payouts and ${(data.trades || []).length} trades.`,
+    { ok: "Restore", danger: true });
+  if (!yes) return;
   S = { ...blank(), ...data, cfg: { ...DEFAULTS, ...(data.cfg || {}) } };
   save(); closeModal(); render(); toast("Backup restored.");
 }
@@ -1850,11 +1925,15 @@ function importData(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const data = JSON.parse(reader.result);
       if (!data || !Array.isArray(data.accounts)) throw new Error("Not a backup from this system");
-      if (!confirm(`Replace everything currently in the system with this backup?\n\n${data.accounts.length} accounts, ${(data.payouts || []).length} payouts, ${(data.trades || []).length} trades.`)) return;
+      const yes = await ask("Restore this backup?",
+        `It replaces everything currently in the system with <strong>${data.accounts.length} accounts</strong>, ` +
+        `${(data.payouts || []).length} payouts and ${(data.trades || []).length} trades.`,
+        { ok: "Restore", danger: true });
+      if (!yes) return;
       S = { ...blank(), ...data, cfg: { ...DEFAULTS, ...(data.cfg || {}) } };
       save(); render(); toast("Backup restored.");
     } catch (err) {
@@ -1865,15 +1944,26 @@ function importData(e) {
   e.target.value = "";
 }
 
-function wipeAll() {
-  if (!confirm("Erase every account, payout and trade permanently?")) return;
-  if (!confirm("Last check — this cannot be undone, and any un-exported data is gone for good. Continue?")) return;
+async function wipeAll() {
+  const once = await ask("Erase everything?",
+    "Every account, payout and trade is deleted permanently.",
+    { ok: "Erase everything", danger: true });
+  if (!once) return;
+  const twice = await ask("Last check",
+    "This cannot be undone, and anything you have not exported is gone for good.",
+    { ok: "Yes, erase it all", danger: true });
+  if (!twice) return;
   S = blank(); save(); render(); toast("Everything erased.");
 }
 
 /** The starting position the guide describes: two $25K Phase 1 evaluations. */
-function seedStart() {
-  if (S.accounts.length && !confirm("You already have accounts. Add two more $25K Phase 1 evaluations?")) return;
+async function seedStart() {
+  if (S.accounts.length) {
+    const yes = await ask("Add two more evaluations?",
+      "You already have accounts. This adds two further $25K Phase 1 evaluations to Tier 3 rather than replacing anything.",
+      { ok: "Add them" });
+    if (!yes) return;
+  }
   const d = today();
   [1, 2].forEach((n) => S.accounts.push({
     id: uid(), name: `$25K Eval #${n}`, firm: "", tier: 3, size: 25000, balance: 25000,
@@ -1888,8 +1978,13 @@ function seedStart() {
  * line, and both ratios short — so every part of the dashboard has something
  * to say. Clearly example data; "Erase everything" in Settings clears it.
  */
-function loadSample() {
-  if (S.accounts.length && !confirm("Replace what is currently in the system with the sample portfolio?")) return;
+async function loadSample() {
+  if (S.accounts.length) {
+    const yes = await ask("Load the sample portfolio?",
+      "It replaces everything currently in the system with example data. Export a backup first if what you have matters.",
+      { ok: "Load sample", danger: true });
+    if (!yes) return;
+  }
 
   const back = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
   const mk = (name, firm, tier, size, balance, opened, cycle) => ({
